@@ -44,7 +44,6 @@ function initPlayer(movieId, posterUrl, imdbId) {
     lang: "pt",
     userLang: "pt",
     features: {
-      ads: false,
       autoSubtitles: true,
       continue: true,
       title: false,
@@ -54,7 +53,7 @@ function initPlayer(movieId, posterUrl, imdbId) {
       embed: false,
       browse: false,
       download: false,
-      fullscreen: false,
+      fullscreen: true,
       playpause: true,
       currentTime: true,
       timeline: true,
