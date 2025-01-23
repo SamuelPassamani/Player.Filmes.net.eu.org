@@ -1,14 +1,11 @@
 {
-  "name": "Player.Filmes.net.eu.org",
+  "name": "my-netlify-project",
   "version": "1.0.0",
-  "description": "Player DownTorr de Filmes",
-  "main": "index.js",
-  "scripts": {
-    "start": "netlify-lambda dev"
-  },
+  "description": "Projeto Node.js com Puppeteer no Netlify",
   "dependencies": {
-    "puppeteer": "^19.0.0", 
-    "axios": "^0.27.2",
-    "cheerio": "^1.0.0-rc.12"
+    "puppeteer": "^20.0.0"
+  },
+  "engines": {
+    "node": "16.x"
   }
 }
