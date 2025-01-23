@@ -18,31 +18,19 @@ if (imdb) {
     return null;
   }
 
-  // Função para buscar o link de download usando Puppeteer
+  // Função para buscar o link de download usando uma API Serverless ou outro serviço
   async function fetchDownloadLink(hash) {
-    const url = `https://webtor.io/${hash}`;
+    const url = `https://meu-site.netlify.app/.netlify/functions/fetchDownloadLink?hash=${hash}`;
     let downloadLink = "";
 
-    // Launch Puppeteer (executado no servidor ou ambiente adequado)
-    const browser = await puppeteer.launch({ headless: true });
-    const page = await browser.newPage();
-
     try {
-      await page.goto(url, { waitUntil: "domcontentloaded" });
-      await page.waitForSelector('button[data-umami-event="download"]');
-      await page.click('button[data-umami-event="download"]');
-      await page.waitForSelector("a.btn.btn-sm.btn-accent.m-2.closeable-close");
-      downloadLink = await page.$eval(
-        "a.btn.btn-sm.btn-accent.m-2.closeable-close",
-        (link) => link.getAttribute("href")
-      );
+      const response = await fetch(url);
+      const data = await response.json();
+      if (data && data.downloadLink) {
+        downloadLink = data.downloadLink;
+      }
     } catch (error) {
-      console.error(
-        "An error occurred while fetching the download link:",
-        error
-      );
-    } finally {
-      await browser.close();
+      console.error("Erro ao acessar o link de download:", error);
     }
 
     return downloadLink;
