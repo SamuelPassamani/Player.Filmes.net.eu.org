@@ -8,32 +8,49 @@ if (imdb) {
 
     try {
       const response = await fetch(apiUrl);
+      if (!response.ok) {
+        console.error("Erro ao acessar a API YTS:", response.statusText);
+        return null;
+      }
+
       const data = await response.json();
       if (data && data.status === "ok" && data.data.movie) {
         return data.data.movie;
+      } else {
+        console.error("Nenhum filme encontrado para o IMDb ID fornecido.");
       }
     } catch (error) {
-      console.error("Erro ao acessar a API:", error);
+      console.error("Erro ao acessar a API YTS:", error);
     }
     return null;
   }
 
   // Função para buscar o link de download usando uma API Serverless ou outro serviço
   async function fetchDownloadLink(hash) {
-    const url = `https://meu-site.netlify.app/.netlify/functions/fetchDownloadLink?hash=${hash}`;
-    let downloadLink = "";
-
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-      if (data && data.downloadLink) {
-        downloadLink = data.downloadLink;
-      }
-    } catch (error) {
-      console.error("Erro ao acessar o link de download:", error);
+    if (!hash) {
+      console.error("Hash do torrent não fornecido.");
+      return null;
     }
 
-    return downloadLink;
+    const url = `https://player.filmes.net.eu.org/.netlify/functions/fetchDownloadLink?hash=${hash}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.error("Erro ao acessar o link de download:", response.statusText);
+        return null;
+      }
+
+      const data = await response.json();
+      if (data && data.downloadLink) {
+        return data.downloadLink;
+      } else {
+        console.error("Nenhum link de download encontrado.");
+      }
+    } catch (error) {
+      console.error("Erro ao buscar o link de download:", error);
+    }
+
+    return null;
   }
 
   // Função para inicializar o JWPlayer com a playlist dinâmica
@@ -41,7 +58,13 @@ if (imdb) {
     const movie = await fetchMovieDetails(imdb);
 
     if (!movie) {
-      console.error("Falha ao buscar os detalhes do filme.");
+      document.body.innerHTML = "<h1>Erro: Não foi possível buscar os detalhes do filme.</h1>";
+      return;
+    }
+
+    // Verificar se há torrents disponíveis
+    if (!movie.torrents || !movie.torrents[0]?.hash) {
+      document.body.innerHTML = "<h1>Erro: Nenhum torrent encontrado para o filme.</h1>";
       return;
     }
 
@@ -49,7 +72,7 @@ if (imdb) {
     const downloadLink = await fetchDownloadLink(movie.torrents[0]?.hash);
 
     if (!downloadLink) {
-      console.error("Falha ao buscar o link de download.");
+      document.body.innerHTML = "<h1>Erro: Não foi possível obter o link de download.</h1>";
       return;
     }
 
@@ -58,24 +81,24 @@ if (imdb) {
       {
         id: movie.id,
         title: movie.title_long,
-        description: `Avaliação ${movie.rating}`,
+        description: `Avaliação: ${movie.rating}`,
         image: movie.background_image,
         sources: [
           {
             file: downloadLink,
             label: movie.torrents[0]?.quality || "HD",
-            type: "video/mp4"
-          }
+            type: "video/mp4",
+          },
         ],
         captions: [
           {
             file: "", // Adicione a URL das legendas, se disponível
             label: "Português",
-            kind: "captions"
-          }
+            kind: "captions",
+          },
         ],
-        tracks: []
-      }
+        tracks: [],
+      },
     ];
 
     const playerInstance = jwplayer("player").setup({
@@ -88,38 +111,29 @@ if (imdb) {
       abouttext: "Buy me a coffee ☕",
       aboutlink: "https://filmes.net.eu.org/help-us/",
       skin: {
-        name: "netflix"
+        name: "netflix",
       },
       logo: {
-        file:
-          "https://lh3.googleusercontent.com/d/1y7iMJ4ph8o50bCgKYaPO_tBEMbGFkMb_?authuser=0",
-        link: "https://filmes.net.eu.org"
+        file: "https://lh3.googleusercontent.com/d/1y7iMJ4ph8o50bCgKYaPO_tBEMbGFkMb_?authuser=0",
+        link: "https://filmes.net.eu.org",
       },
       captions: {
         color: "#efcc00",
         fontSize: 16,
         backgroundOpacity: 0,
-        edgeStyle: "raised"
+        edgeStyle: "raised",
       },
-      playlist: updatedPlaylist
+      playlist: updatedPlaylist,
     });
 
     playerInstance.on("ready", function () {
+      // Adiciona o botão de download
       const buttonId = "download-video-button";
       const iconPath =
         "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij48cGF0aCBmaWxsPSJub25lIiBkPSJNMCAwaDI0djI0SDB6Ii8+PHBhdGggZD0iTTMgMTloMTh2Mkgzdi0yem0xMC01LjgyOEwxOS4wNzEgNy4xbDEuNDE0IDEuNDE0TDEyIDE3IDMuNTE1IDguNTE1IDQuOTI5IDcuMSAxMSAxMy4xN1YyaDJ2MTEuMTcyeiIgZmlsbD0icmdiYSgyNDcsMjQ3LDI0NywxKSIvPjwvc3ZnPg==";
       const tooltipText = "Download Video";
 
-      // Adiciona o botão personalizado ao player
-      playerInstance.addButton(
-        iconPath,
-        tooltipText,
-        buttonClickAction,
-        buttonId
-      );
-
-      // Ação do botão de download
-      function buttonClickAction() {
+      playerInstance.addButton(iconPath, tooltipText, () => {
         const playlistItem = playerInstance.getPlaylistItem();
         const anchor = document.createElement("a");
         const fileUrl = playlistItem.file;
@@ -130,65 +144,19 @@ if (imdb) {
         document.body.appendChild(anchor);
         anchor.click();
         document.body.removeChild(anchor);
-      }
+      }, buttonId);
 
-      // Move a timeslider na interface
+      // Outros ajustes no player
       const playerContainer = playerInstance.getContainer();
-      const buttonContainer = playerContainer.querySelector(
-        ".jw-button-container"
-      );
+      const buttonContainer = playerContainer.querySelector(".jw-button-container");
       const spacer = buttonContainer.querySelector(".jw-spacer");
       const timeSlider = playerContainer.querySelector(".jw-slider-time");
       buttonContainer.replaceChild(timeSlider, spacer);
-
-      // Detecta adblock e exibe um modal
-      playerInstance.off("adBlock", () => {
-        const modal = document.querySelector("div.modal");
-        modal.style.display = "flex";
-
-        document
-          .getElementById("close")
-          .addEventListener("click", () => location.reload());
-      });
-
-      // Adiciona o botão para avançar 10 segundos
-      const rewindContainer = playerContainer.querySelector(
-        ".jw-display-icon-rewind"
-      );
-      const forwardContainer = rewindContainer.cloneNode(true);
-      const forwardDisplayButton = forwardContainer.querySelector(
-        ".jw-icon-rewind"
-      );
-      forwardDisplayButton.style.transform = "scaleX(-1)";
-      forwardDisplayButton.ariaLabel = "Forward 10 Seconds";
-      const nextContainer = playerContainer.querySelector(
-        ".jw-display-icon-next"
-      );
-      nextContainer.parentNode.insertBefore(forwardContainer, nextContainer);
-
-      // Controle de barra para avançar 10 segundos
-      const rewindControlBarButton = buttonContainer.querySelector(
-        ".jw-icon-rewind"
-      );
-      const forwardControlBarButton = rewindControlBarButton.cloneNode(true);
-      forwardControlBarButton.style.transform = "scaleX(-1)";
-      forwardControlBarButton.ariaLabel = "Forward 10 Seconds";
-      rewindControlBarButton.parentNode.insertBefore(
-        forwardControlBarButton,
-        rewindControlBarButton.nextElementSibling
-      );
-
-      // Função de avançar 10 segundos
-      [forwardDisplayButton, forwardControlBarButton].forEach((button) => {
-        button.onclick = () => {
-          playerInstance.seek(playerInstance.getPosition() + 10);
-        };
-      });
     });
   }
 
   // Inicializa o player com o IMDb ID fornecido na URL
   initializePlayer(imdb);
 } else {
-  console.error("Nenhum IMDb ID foi informado na URL.");
+  document.body.innerHTML = "<h1>Erro: Nenhum IMDb ID foi fornecido na URL.</h1>";
 }
