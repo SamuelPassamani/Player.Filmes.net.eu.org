@@ -1,11 +1,7 @@
 {
-  "name": "my-netlify-project",
-  "version": "1.0.0",
-  "description": "Projeto Node.js com Puppeteer no Netlify",
   "dependencies": {
-    "puppeteer": "^20.0.0"
-  },
-  "engines": {
-    "node": "16.x"
+    "chrome-aws-lambda": "^10.2.0",
+    "puppeteer-core": "^10.2.0",
+    "node-fetch": "^3.0.0"
   }
 }
