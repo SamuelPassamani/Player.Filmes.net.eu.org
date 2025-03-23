@@ -1,0 +1,199 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carregando...</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="https://lh3.googleusercontent.com/d/1C60k_ZRsgaI7E4jLhiM9fO8UpyPLzpux?authuser=0" type="image/jpg">
+
+  <style>
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      background-color: #f0f0f0;
+      background-image: url('https://lh3.googleusercontent.com/d/1DLTzvLxRZOaXWbXFaOosYNfc9zfIWIpV?authuser=0');
+      background-size: cover;
+      overflow: hidden;
+    }
+
+    .button-container {
+      display: flex;
+      justify-content: center;
+      position: absolute;
+      bottom: 100px;
+      width: 100%;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.5s, visibility 0.5s;
+      z-index: 1;
+    }
+
+    .button-container.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .button-container button {
+      padding: 10px 20px;
+      margin: 0 10px;
+      border: none;
+      border-radius: 10px;
+      background-color: #555;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .button-container button:hover {
+      background-color: #7283a3;
+    }
+
+    .button-container button.selected {
+      background-color: #003c7f;
+    }
+
+    .iframe-container {
+      position: fixed;
+      /* Ocupa toda a tela */
+      top: 0;
+      left: 0;
+      width: 100vw;
+      /* 100% da largura da viewport */
+      height: 100vh;
+      /* 100% da altura da viewport */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      /* Evita rolagem desnecessária */
+    }
+
+    #webtor-player {
+      width: 100%;
+      height: 600px;
+      max-width: 100vw;
+      /* Evita que ultrapasse a largura da tela */
+      max-height: 100vh;
+      /* Evita que ultrapasse a altura da tela */
+      object-fit: cover;
+      /* Mantém a proporção do vídeo e ajusta ao container */
+    }
+
+    .toggle-btn {
+      position: absolute;
+      top: 37px;
+      left: 20px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background-color: #003c7f;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s, opacity 0.5s, visibility 0.5s;
+      z-index: 2;
+    }
+
+    .toggle-btn:hover {
+      background-color: #7283a3;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@webtor/embed-sdk-js/dist/index.min.js" charset="utf-8" async></script>
+</head>
+
+<body oncontextmenu="return false;" onkeydown="return disableShortcuts(event);">
+  <div class="button-container" id="button-container"></div>
+  <div class="iframe-container">
+    <div id="webtor-player"></div>
+  </div>
+  <button class="toggle-btn" id="toggle-btn" onclick="toggleButtonContainer()">Menu</button>
+
+  <script>
+    function fetchMovieDetails(imdbCode) {
+      const apiUrl = `https://yts.mx/api/v2/movie_details.json?imdb_id=${imdbCode}`;
+      fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'ok' && data.data.movie) {
+            const movie = data.data.movie;
+            document.title = `${movie.title} - ${movie.year}`;
+            moviePoster = movie.background_image || '';
+            createPlayerButtons(movie.torrents, imdbCode);
+          } else {
+            alert('Movie details not found');
+          }
+        })
+        .catch(error => console.error('Error fetching movie details:', error));
+    }
+
+    function createPlayerButtons(torrents, imdbCode) {
+      const buttonContainer = document.getElementById('button-container');
+      buttonContainer.innerHTML = '';
+      torrents.forEach((torrent, index) => {
+        const button = document.createElement('button');
+        button.textContent = `${torrent.quality}.${torrent.type}.${torrent.video_codec}`;
+        button.onclick = (event) => loadVideo(torrent.hash, event.target);
+        buttonContainer.appendChild(button);
+        if (index === 0) {
+          loadVideo(torrent.hash, button);
+        }
+      });
+      showButtonContainer();
+    }
+
+    function loadVideo(hash, button) {
+      const playerContainer = document.getElementById('webtor-player');
+      playerContainer.innerHTML = '';
+      window.webtor = window.webtor || [];
+      window.webtor.push({
+        id: 'webtor-player',
+        width: '100%',
+        height: '600px',
+        magnet: `magnet:?xt=urn:btih:${hash}&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fp4p.arenabg.com%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.dler.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Fipv4.tracker.harry.lu%3A80%2Fannounce&tr=https%3A%2F%2Fopentracker.i2p.rocks%3A443%2Fannounce&tr=udp%3A%2F%2Ftracker.birkenwald.de%3A6969%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce&tr=http%3A%2F%2Ftracker.files.fm%3A6969%2Fannounce&tr=http%3A%2F%2Fbt.okmp3.ru%3A2710%2Fannounce&tr=https%3A%2F%2Ftracker.tamersunion.org%3A443%2Fannounce&tr=https%3A%2F%2Ftracker.lilithraws.org%3A443%2Fannounce&tr=http%3A%2F%2Ftracker1.itzmx.com%3A8080%2Fannounce&tr=udp%3A%2F%2Fevan.im%3A6969%2Fannounce&tr=https%3A%2F%2Ftracker.yemekyedim.com%3A443%2Fannounce&tr=https%3A%2F%2Ftracker.amelia.fun%3A443%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=https%3A%2F%2Ftrackers.mlsub.net%3A443%2Fannounce&tr=udp%3A%2F%2Ftracker3.t-1.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fopen.demonii.com%3A1337%2Fannounce&tr=udp%3A%2F%2Foh.fuuuuuck.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Fexplodie.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.mg64.net%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&tr=udp%3A%2F%2Fpublic.popcorn-tracker.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=http%3A%2F%2Ftracker.vraphim.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fu4.trakx.crim.ist%3A1337%2Fannounce&tr=udp%3A%2F%2Fu6.trakx.crim.ist%3A1337%2Fannounce&tr=udp%3A%2F%2Fp2p.publictracker.xyz%3A6969%2Fannounce&tr=udp%3A%2F%2Fttk2.nbaonlineservice.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.fnix.net%3A6969%2Fannounce&tr=udp%3A%2F%2Fmartin-gebhardt.eu%3A25%2Fannounce&tr=udp%3A%2F%2Fr.l5.ca%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.deadorbit.nl%3A6969%2Fannounce&tr=https%3A%2F%2Ftracker.gcrenwp.top%3A443%2Fannounce&tr=udp%3A%2F%2Fbandito.byterunner.io%3A6969%2Fannounce&tr=udp%3A%2F%2Ftrackarr.org%3A6969%2Fannounce&tr=http%3A%2F%2Ftaciturn-shadow.spb.ru%3A6969%2Fannounce&tr=https%3A%2F%2Ftracker.bjut.jp%3A443%2Fannounce&tr=https%3A%2F%2Fapi.ipv4online.uk%3A443%2Fannounce&tr=http%3A%2F%2Ftracker.beeimg.com%3A6969%2Fannounce&tr=https%3A%2F%2Ftracker.moeking.me%3A443%2Fannounce&tr=http%3A%2F%2Ftracker.renfei.net%3A8080%2Fannounce&tr=https%3A%2F%2Ftr.nyacat.pw%3A443%2Fannounce&tr=udp%3A%2F%2Fretracker.hotplug.ru%3A2710%2Fannounce&tr=udp%3A%2F%2Fd40969.acod.regrucolo.ru%3A6969%2Fannounce&tr=udp%3A%2F%2Ftr4ck3r.duckdns.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fismaarino.com%3A1234%2Fannounce&tr=https%3A%2F%2Ftr.zukizuki.org%3A443%2Fannounce&tr=http%3A%2F%2Ftracker.mywaifu.best%3A6969%2Fannounce&tr=udp%3A%2F%2Fodd-hd.fr%3A6969%2Fannounce&tr=udp%3A%2F%2Fretracker.lanta.me%3A2710%2Fannounce&tr=udp%3A%2F%2Fec2-18-191-163-220.us-east-2.compute.amazonaws.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fserpb.vpsburti.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ft.overflow.biz%3A6969%2Fannounce&tr=udp%3A%2F%2Fudp.tracker.projectk.org%3A23333%2Fannounce&tr=udp%3A%2F%2Ftracker.tryhackx.org%3A6969%2Fannounce&tr=http%3A%2F%2Fipv4.rer.lol%3A2710%2Fannounce&tr=udp%3A%2F%2Ftracker.breizh.pm%3A6969%2Fannounce&tr=http%3A%2F%2Ftracker2.itzmx.com%3A6961%2Fannounce&tr=http%3A%2F%2Ftracker4.itzmx.com%3A2710%2Fannounce&tr=udp%3A%2F%2Ftracker.yume-hatsuyuki.moe%3A6969%2Fannounce&tr=udp%3A%2F%2Fcq.kmzs123.cn%3A17272%2Fannounce&tr=udp%3A%2F%2Ftracker.srv00.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.kmzs123.tk%3A17272%2Fannounce&tr=http%3A%2F%2Ftracker3.itzmx.com%3A6961%2Fannounce&tr=http%3A%2F%2Fipv6.rer.lol%3A6969%2Fannounce&tr=udp%3A%2F%2Fwepzone.net%3A6969%2Fannounce&tr=udp%3A%2F%2Fseedpeer.net%3A6969%2Fannounce&tr=http%3A%2F%2Ftr1.aag.moe%3A2095%2Fannounce&tr=udp%3A%2F%2Ftracker.filemail.com%3A6969%2Fannounce&tr=http%3A%2F%2Fipv4announce.sktorrent.eu%3A6969%2Fannounce&tr=https%3A%2F%2Ftracker.pmman.tech%3A443%2Fannounce&tr=udp%3A%2F%2Ftracker.dler.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.0x7c0.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.darkness.services%3A6969%2Fannounce&tr=udp%3A%2F%2Fwww.torrent.eu.org%3A451%2Fannounce&tr=http%3A%2F%2Ftracker-zhuqiy.dgj055.icu%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.gmi.gd%3A6969%2Fannounce&tr=udp%3A%2F%2Fbt.ktrackers.com%3A6666%2Fannounce&tr=https%3A%2F%2Ftorrent.tracker.durukanbal.com%3A443%2Fannounce&tr=udp%3A%2F%2Fopentracker.io%3A6969%2Fannounce&tr=https%3A%2F%2Ftr2.trkb.ru%3A443%2Fannounce&tr=udp%3A%2F%2Fns1.monolithindustries.com%3A6969%2Fannounce&tr=https%3A%2F%2Fretracker.x2k.ru%3A443%2Fannounce&tr=http%3A%2F%2Fbt1.archive.org%3A6969%2Fannounce&tr=http%3A%2F%2Fbt2.archive.org%3A6969%2Fannounce`,
+        poster: moviePoster,
+        onReady: function() {
+          console.log('Webtor player is ready');
+        }
+      });
+      document.querySelectorAll('.button-container button').forEach(btn => btn.classList.remove('selected'));
+      button.classList.add('selected');
+      hideButtonContainer();
+    }
+
+    function toggleButtonContainer() {
+      const buttonContainer = document.getElementById('button-container');
+      buttonContainer.classList.toggle('visible');
+    }
+
+    function showButtonContainer() {
+      document.getElementById('button-container').classList.add('visible');
+    }
+
+    function hideButtonContainer() {
+      document.getElementById('button-container').classList.remove('visible');
+    }
+
+    function disableShortcuts(event) {
+      const forbiddenKeys = ['F12', 'I', 'J', 'U', 'S'];
+      if ((event.ctrlKey && forbiddenKeys.includes(event.key.toUpperCase())) || event.key === 'F12') {
+        event.preventDefault();
+        return false;
+      }
+    }
+    window.onload = function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const imdbCode = urlParams.get('id');
+      if (imdbCode) fetchMovieDetails(imdbCode);
+    };
+  </script>
+</body>
+
+</html>
