@@ -1,0 +1,96 @@
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #f0f0f0;
+  background-image: url('https://lh3.googleusercontent.com/d/1DLTzvLxRZOaXWbXFaOosYNfc9zfIWIpV?authuser=0');
+  background-size: cover;
+  overflow: hidden;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  bottom: 100px;
+  width: 100%;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s, visibility 0.5s;
+  z-index: 1;
+}
+
+.button-container.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.button-container button {
+  padding: 10px 20px;
+  margin: 0 10px;
+  border: none;
+  border-radius: 10px;
+  background-color: #555;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.button-container button:hover {
+  background-color: #7283a3;
+}
+
+.button-container button.selected {
+  background-color: #003c7f;
+}
+
+.iframe-container {
+  position: fixed;
+  /* Ocupa toda a tela */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  /* 100% da largura da viewport */
+  height: 100vh;
+  /* 100% da altura da viewport */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  /* Evita rolagem desnecessária */
+}
+
+#webtor-player {
+  width: 100%;
+  height: 600px;
+  max-width: 100vw;
+  /* Evita que ultrapasse a largura da tela */
+  max-height: 100vh;
+  /* Evita que ultrapasse a altura da tela */
+  object-fit: cover;
+  /* Mantém a proporção do vídeo e ajusta ao container */
+}
+
+.toggle-btn {
+  position: absolute;
+  top: 37px;
+  left: 20px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  background-color: #003c7f;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s, opacity 0.5s, visibility 0.5s;
+  z-index: 2;
+}
+
+.toggle-btn:hover {
+  background-color: #7283a3;
+}
