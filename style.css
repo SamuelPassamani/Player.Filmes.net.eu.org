@@ -23,7 +23,7 @@ html {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.5s, visibility 0.5s;
-  z-index: 1;
+  z-index: 3; /* Ajustado para garantir que os botões estejam por cima do player */
 }
 
 .button-container.visible {
@@ -61,14 +61,14 @@ html {
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  z-index: 2; /* Ajustado para garantir que o player esteja por cima do background */
+  z-index: 1;
 }
 
-#iframe-container,
 #webtor-player {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  z-index: 2; /* Ajustado para garantir que o player esteja por cima do fundo */
 }
 
 .toggle-btn {
@@ -83,7 +83,7 @@ html {
   font-size: 16px;
   cursor: pointer;
   transition: background-color 0.3s, opacity 0.5s, visibility 0.5s;
-  z-index: 3; /* Ajustado para garantir que o botão esteja por cima do player */
+  z-index: 4; /* Ajustado para garantir que o botão esteja por cima dos botões e do player */
 }
 
 .toggle-btn:hover {
