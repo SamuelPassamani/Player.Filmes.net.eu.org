@@ -99,3 +99,30 @@ html {
   visibility: hidden;
   transition: opacity 0.5s, visibility 0.5s;
 }
+
+/* Media queries para responsividade */
+@media (max-width: 768px) {
+  .button-container {
+    bottom: 50px;
+  }
+
+  .toggle-btn {
+    top: 20px;
+    left: 10px;
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .button-container {
+    bottom: 30px;
+  }
+
+  .toggle-btn {
+    top: 10px;
+    left: 5px;
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}
