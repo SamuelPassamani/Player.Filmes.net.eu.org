@@ -86,3 +86,9 @@ html {
 .toggle-btn:hover {
   background-color: #7283a3;
 }
+
+.toggle-btn.fade-out {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s, visibility 0.5s;
+}

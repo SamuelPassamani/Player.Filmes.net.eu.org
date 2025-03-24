@@ -1,3 +1,5 @@
+let inactivityTimeout;
+
 function fetchMovieDetails(imdbCode) {
   const apiUrl = `https://yts.mx/api/v2/movie_details.json?imdb_id=${imdbCode}`;
   fetch(apiUrl)
@@ -69,8 +71,25 @@ function disableShortcuts(event) {
     return false;
   }
 }
+
+function handleInactivity() {
+  const toggleBtn = document.getElementById('toggle-btn');
+  toggleBtn.classList.add('fade-out');
+}
+
+function resetInactivityTimeout() {
+  clearTimeout(inactivityTimeout);
+  const toggleBtn = document.getElementById('toggle-btn');
+  toggleBtn.classList.remove('fade-out');
+  inactivityTimeout = setTimeout(handleInactivity, 3000); // 3 segundos de inatividade
+}
+
 window.onload = function() {
   const urlParams = new URLSearchParams(window.location.search);
   const imdbCode = urlParams.get('id');
   if (imdbCode) fetchMovieDetails(imdbCode);
+
+  document.addEventListener('mousemove', resetInactivityTimeout);
+  document.addEventListener('keydown', resetInactivityTimeout);
+  inactivityTimeout = setTimeout(handleInactivity, 3000); // 3 segundos de inatividade
 };
