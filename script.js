@@ -37,7 +37,7 @@ function loadVideo(hash, button) {
   window.webtor.push({
     id: 'webtor-player',
     width: '100%',
-    height: '600px',
+    height: '100%',
     magnet: `magnet:?xt=urn:btih:${hash}&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fp4p.arenabg.com%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce`,
     poster: moviePoster,
     onReady: function() {

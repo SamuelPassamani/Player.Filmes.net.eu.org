@@ -51,29 +51,21 @@ html {
 
 .iframe-container {
   position: fixed;
-  /* Ocupa toda a tela */
   top: 0;
   left: 0;
   width: 100vw;
-  /* 100% da largura da viewport */
   height: 100vh;
-  /* 100% da altura da viewport */
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  /* Evita rolagem desnecessária */
 }
 
+#iframe-container,
 #webtor-player {
   width: 100%;
-  height: 600px;
-  max-width: 100vw;
-  /* Evita que ultrapasse a largura da tela */
-  max-height: 100vh;
-  /* Evita que ultrapasse a altura da tela */
+  height: 100%;
   object-fit: cover;
-  /* Mantém a proporção do vídeo e ajusta ao container */
 }
 
 .toggle-btn {
