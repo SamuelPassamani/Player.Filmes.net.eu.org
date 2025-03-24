@@ -68,11 +68,11 @@ html {
   z-index: 2; /* Ajustado para garantir que o player esteja por cima do fundo */
 }
 
+#iframe-container,
 #webtor-player {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  z-index: 3; /* Ajustado para garantir que o player esteja por cima do fundo */
+  object-fit: contain; /* Mantém a proporção do vídeo */
 }
 
 .toggle-btn {
