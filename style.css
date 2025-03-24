@@ -61,14 +61,14 @@ html {
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  z-index: 1;
+  z-index: 2; /* Ajustado para garantir que o player esteja por cima do fundo */
 }
 
 #webtor-player {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: 2; /* Ajustado para garantir que o player esteja por cima do fundo */
+  z-index: 3; /* Ajustado para garantir que o player esteja por cima do fundo */
 }
 
 .toggle-btn {
