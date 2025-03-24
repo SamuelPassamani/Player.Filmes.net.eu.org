@@ -61,7 +61,7 @@ html {
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  z-index: 2; /* Ajustado para garantir que o player esteja por cima do fundo */
+  z-index: 3; /* Ajustado para garantir que o player esteja por cima do fundo */
 }
 
 #webtor-player {
