@@ -7,11 +7,15 @@ html {
   display: flex;
   flex-direction: column;
   background-color: #f0f0f0;
-  background-image: url('https://lh3.googleusercontent.com/d/1DLTzvLxRZOaXWbXFaOosYNfc9zfIWIpV?authuser=0');
+  background-image: url('https://lh3.googleusercontent.com/d/1DLTzvLxRZOaXWbXFaOosYNfc9zfIWIpV?authuser=0'); /* Background inicial */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   overflow: hidden;
+}
+
+.background-hidden {
+  display: none;
 }
 
 .button-container {
@@ -61,7 +65,7 @@ html {
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  z-index: 3; /* Ajustado para garantir que o player esteja por cima do fundo */
+  z-index: 2; /* Ajustado para garantir que o player esteja por cima do fundo */
 }
 
 #webtor-player {

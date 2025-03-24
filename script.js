@@ -1,4 +1,5 @@
 let inactivityTimeout;
+let moviePoster = ''; // Variável global para armazenar a imagem do poster do filme
 
 function fetchMovieDetails(imdbCode) {
   const apiUrl = `https://yts.mx/api/v2/movie_details.json?with_images=true&with_cast=true&imdb_id=${imdbCode}`;
@@ -8,8 +9,7 @@ function fetchMovieDetails(imdbCode) {
       if (data.status === 'ok' && data.data.movie) {
         const movie = data.data.movie;
         document.title = `${movie.title} - ${movie.year}`;
-        const moviePoster = movie.background_image || '';
-        document.body.style.backgroundImage = `url(${moviePoster})`;
+        moviePoster = movie.background_image || '';
         createPlayerButtons(movie.torrents, imdbCode);
       } else {
         alert('Movie details not found');
@@ -45,6 +45,7 @@ function loadVideo(hash, button) {
     poster: moviePoster,
     onReady: function() {
       console.log('Webtor player is ready');
+      document.body.classList.add('background-hidden'); // Ocultar o background após o player ser carregado
     }
   });
   document.querySelectorAll('.button-container button').forEach(btn => btn.classList.remove('selected'));
