@@ -7,8 +7,9 @@ function fetchMovieDetails(imdbCode) {
     .then(data => {
       if (data.status === 'ok' && data.data.movie) {
         const movie = data.data.movie;
-        document.title = `${movie.title_long}`;
-        moviePoster = movie.background_image || '';
+        document.title = `${movie.title} - ${movie.year}`;
+        const moviePoster = movie.background_image || '';
+        document.body.style.backgroundImage = `url(${moviePoster})`;
         createPlayerButtons(movie.torrents, imdbCode);
       } else {
         alert('Movie details not found');
