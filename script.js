@@ -127,12 +127,16 @@ class MoviePlayer {
 
   loadVideo(hash, button = null) {
     this.playerContainer.innerHTML = '';
+    const magnetLink = this.buildMagnetLink(hash);
+
+    console.log('Magnet link gerado:', magnetLink); // Log para verificar o magnet link
+
     window.webtor = window.webtor || [];
     window.webtor.push({
       id: this.playerContainer.id,
       width: '100%',
       height: '100%',
-      magnet: this.buildMagnetLink(hash),
+      magnet: magnetLink,
       poster: this.moviePoster,
       features: {
         autoSubtitles: true,
@@ -143,16 +147,14 @@ class MoviePlayer {
         subtitles: true,
         settings: false,
         fullscreen: true,
-        // playpause: false,
-        // currentTime: false,
-        // timeline: false,
-        // duration: false,
-        // volume: false,
         chromecast: true,
       },
       onReady: () => {
-        console.log('Webtor player is ready');
+        console.log('Webtor player está pronto'); // Log para verificar inicialização bem-sucedida
         document.body.classList.add('background-hidden'); // Ocultar o background após o player ser carregado
+      },
+      onError: (error) => {
+        console.error('Erro ao inicializar o Webtor player:', error); // Log para erros do player
       },
     });
 
