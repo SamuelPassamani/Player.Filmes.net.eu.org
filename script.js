@@ -73,18 +73,26 @@ class MoviePlayer {
     if (hash) {
       console.log('Carregando vídeo diretamente com o hash fornecido na URL.');
       this.loadVideo(hash);
+
+      // Ocultar o botão de menu quando o parâmetro "hash" estiver presente
+      if (this.toggleButton) {
+        this.toggleButton.style.display = 'none';
+      } else {
+        console.warn('Botão de menu não encontrado no DOM.');
+      }
     } else if (imdbCode) {
       console.log('Buscando detalhes do filme com o código IMDb: ', imdbCode);
       this.fetchMovieDetails(imdbCode);
+
+      // Mostrar o botão de menu quando o parâmetro "id" estiver presente
+      if (this.toggleButton) {
+        this.toggleButton.style.display = 'block';
+      } else {
+        console.warn('Botão de menu não encontrado no DOM.');
+      }
     } else {
       console.error('Parâmetros "id" e "hash" ausentes na URL. Não é possível carregar o filme.');
       alert('Erro: Parâmetros "id" ou "hash" ausentes. Verifique a URL e tente novamente.');
-    }
-
-    if (this.toggleButton) {
-      this.toggleButton.addEventListener('click', () => this.toggleButtonContainer());
-    } else {
-      console.warn('Botão de menu não encontrado no DOM.');
     }
 
     document.addEventListener('mousemove', () => this.resetInactivityTimeout());
