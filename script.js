@@ -6,6 +6,7 @@ class MoviePlayer {
     this.toggleButton = document.getElementById(toggleButtonId);
     this.inactivityTimeout = null;
     this.moviePoster = '';
+    this.defaultPoster = 'https://lh3.googleusercontent.com/d/1DLTzvLxRZOaXWbXFaOosYNfc9zfIWIpV?authuser=0';
     this.TRACKERS = [
       'udp://tracker.coppersurfer.tk:6969/announce',
       'udp://9.rarbg.com:2710/announce',
@@ -72,6 +73,8 @@ class MoviePlayer {
 
     if (hash) {
       console.log('Carregando vídeo diretamente com o hash fornecido na URL.');
+      this.moviePoster = this.defaultPoster; // Carrega a imagem padrão para 'hash'
+      console.log('Poster padrão configurado para hash:', this.moviePoster);
       this.loadVideo(hash);
 
       // Ocultar o botão de menu quando o parâmetro "hash" estiver presente
