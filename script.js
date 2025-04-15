@@ -107,6 +107,7 @@ class MoviePlayer {
       const button = document.createElement('button');
       button.textContent = `${torrent.quality}.${torrent.type}.${torrent.video_codec}`;
       button.setAttribute('aria-label', `Play ${torrent.quality} ${torrent.type}`);
+      button.classList.add('fade-in'); // Adiciona classe para suavizar
       button.onclick = () => this.loadVideo(torrent.hash, button);
       this.buttonContainer.appendChild(button);
       if (index === 0) {
@@ -153,14 +154,14 @@ class MoviePlayer {
   }
 
   handleInactivity() {
-    this.toggleButton.classList.add('fade-out');
-    this.toggleButton.style.display = 'none'; // Esconder o botão "Menu" após inatividade
+    this.toggleButton.classList.add('fade-out'); // Adicionar classe de fade-out para suavizar
+    this.buttonContainer.classList.add('fade-out');
   }
 
   resetInactivityTimeout() {
     clearTimeout(this.inactivityTimeout);
-    this.toggleButton.classList.remove('fade-out');
-    this.toggleButton.style.display = ''; // Mostrar o botão "Menu" novamente
+    this.toggleButton.classList.remove('fade-out'); // Remover classe de fade-out
+    this.buttonContainer.classList.remove('fade-out');
     this.inactivityTimeout = setTimeout(() => this.handleInactivity(), 3000); // 3 segundos de inatividade
   }
 
