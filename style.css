@@ -44,7 +44,7 @@ html {
   color: white;
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, opacity 0.5s, visibility 0.5s;
 }
 
 .button-container button:hover {
@@ -53,6 +53,16 @@ html {
 
 .button-container button.selected {
   background-color: #003c7f;
+}
+
+.button-container button.fade-out {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.button-container button.fade-in {
+  opacity: 1;
+  visibility: visible;
 }
 
 .iframe-container {
@@ -98,6 +108,11 @@ html {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.5s, visibility 0.5s;
+}
+
+.toggle-btn.fade-in {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Media queries para responsividade */
