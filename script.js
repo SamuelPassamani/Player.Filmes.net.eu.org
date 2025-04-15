@@ -107,7 +107,7 @@ class MoviePlayer {
       const button = document.createElement('button');
       button.textContent = `${torrent.quality}.${torrent.type}.${torrent.video_codec}`;
       button.setAttribute('aria-label', `Play ${torrent.quality} ${torrent.type}`);
-      button.classList.add('fade-in'); // Adiciona classe para suavizar
+      button.classList.add('fade-in');
       button.onclick = () => this.loadVideo(torrent.hash, button);
       this.buttonContainer.appendChild(button);
       if (index === 0) {
@@ -126,6 +126,22 @@ class MoviePlayer {
       height: '100%',
       magnet: this.buildMagnetLink(hash),
       poster: this.moviePoster,
+      features: {
+        autoSubtitles: true,
+        continue: true,
+        embed: false,
+        title: false,
+        p2pProgress: false,
+        subtitles: true,
+        settings: false,
+        fullscreen: true,
+        // playpause: false,
+        // currentTime: false,
+        // timeline: false,
+        // duration: false,
+        // volume: false,
+        chromecast: true,
+      },
       onReady: () => {
         console.log('Webtor player is ready');
         document.body.classList.add('background-hidden'); // Ocultar o background após o player ser carregado
@@ -154,13 +170,13 @@ class MoviePlayer {
   }
 
   handleInactivity() {
-    this.toggleButton.classList.add('fade-out'); // Adicionar classe de fade-out para suavizar
+    this.toggleButton.classList.add('fade-out');
     this.buttonContainer.classList.add('fade-out');
   }
 
   resetInactivityTimeout() {
     clearTimeout(this.inactivityTimeout);
-    this.toggleButton.classList.remove('fade-out'); // Remover classe de fade-out
+    this.toggleButton.classList.remove('fade-out');
     this.buttonContainer.classList.remove('fade-out');
     this.inactivityTimeout = setTimeout(() => this.handleInactivity(), 3000); // 3 segundos de inatividade
   }
