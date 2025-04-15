@@ -70,6 +70,9 @@ class MoviePlayer {
     const imdbCode = urlParams.get('id');
     if (imdbCode) this.fetchMovieDetails(imdbCode);
 
+    // Associar evento de clique ao botão "Menu"
+    this.toggleButton.addEventListener('click', () => this.toggleButtonContainer());
+
     document.addEventListener('mousemove', () => this.resetInactivityTimeout());
     document.addEventListener('keydown', () => this.resetInactivityTimeout());
     this.inactivityTimeout = setTimeout(() => this.handleInactivity(), 3000); // 3 segundos de inatividade
@@ -128,7 +131,6 @@ class MoviePlayer {
       },
     });
 
-    // Atualizar estado visual dos botões
     [...this.buttonContainer.querySelectorAll('button')].forEach(btn => btn.classList.remove('selected'));
     button.classList.add('selected');
     this.hideButtonContainer();
@@ -152,11 +154,13 @@ class MoviePlayer {
 
   handleInactivity() {
     this.toggleButton.classList.add('fade-out');
+    this.toggleButton.style.display = 'none'; // Esconder o botão "Menu" após inatividade
   }
 
   resetInactivityTimeout() {
     clearTimeout(this.inactivityTimeout);
     this.toggleButton.classList.remove('fade-out');
+    this.toggleButton.style.display = ''; // Mostrar o botão "Menu" novamente
     this.inactivityTimeout = setTimeout(() => this.handleInactivity(), 3000); // 3 segundos de inatividade
   }
 
@@ -169,7 +173,6 @@ class MoviePlayer {
   }
 }
 
-// Instanciar e iniciar o player
 document.addEventListener('DOMContentLoaded', () => {
   const moviePlayer = new MoviePlayer(
     'https://yts.mx/api/v2/movie_details.json',
@@ -179,6 +182,5 @@ document.addEventListener('DOMContentLoaded', () => {
   );
   moviePlayer.init();
 
-  // Desabilitar atalhos
   document.addEventListener('keydown', event => moviePlayer.disableShortcuts(event));
 });
