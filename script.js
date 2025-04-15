@@ -71,57 +71,79 @@ class MoviePlayer {
     const hash = urlParams.get('hash');
 
     if (hash) {
-      // Caso o parâmetro 'hash' esteja presente, carrega diretamente o player
+      console.log('Carregando vídeo diretamente com o hash fornecido na URL.');
       this.loadVideo(hash);
     } else if (imdbCode) {
-      // Caso contrário, busca os detalhes do filme
+      console.log('Buscando detalhes do filme com o código IMDb: ', imdbCode);
       this.fetchMovieDetails(imdbCode);
+    } else {
+      console.error('Parâmetros "id" e "hash" ausentes na URL. Não é possível carregar o filme.');
+      alert('Erro: Parâmetros "id" ou "hash" ausentes. Verifique a URL e tente novamente.');
     }
 
-    // Associar evento de clique ao botão "Menu"
-    this.toggleButton.addEventListener('click', () => this.toggleButtonContainer());
+    if (this.toggleButton) {
+      this.toggleButton.addEventListener('click', () => this.toggleButtonContainer());
+    } else {
+      console.warn('Botão de menu não encontrado no DOM.');
+    }
 
     document.addEventListener('mousemove', () => this.resetInactivityTimeout());
     document.addEventListener('keydown', () => this.resetInactivityTimeout());
-    this.inactivityTimeout = setTimeout(() => this.handleInactivity(), 3000); // 3 segundos de inatividade
+    const inactivityDuration = 3000; // 3 segundos
+    this.inactivityTimeout = setTimeout(() => this.handleInactivity(), inactivityDuration);
   }
 
   fetchMovieDetails(imdbCode) {
     const url = `${this.apiUrl}?with_images=true&with_cast=true&imdb_id=${imdbCode}`;
     fetch(url)
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Erro na resposta da API: ${response.statusText}`);
+        }
+        return response.json();
+      })
       .then(data => this.handleMovieDetails(data))
       .catch(error => {
-        console.error('Error fetching movie details:', error);
-        alert('Failed to fetch movie details. Please try again later.');
+        console.error('Erro ao buscar detalhes do filme:', error);
+        alert('Erro ao buscar detalhes do filme. Tente novamente mais tarde.');
       });
   }
 
   handleMovieDetails(data) {
     if (data && data.status === 'ok' && data.data && data.data.movie) {
       const movie = data.data.movie;
+      console.log('Detalhes do filme carregados com sucesso:', movie);
       document.title = `${movie.title} - ${movie.year}`;
       this.moviePoster = movie.background_image || '';
       this.createPlayerButtons(movie.torrents);
     } else {
-      alert('Movie details not found');
-      console.error('Invalid API response:', data);
+      console.error('Resposta da API inválida:', data);
+      alert('Detalhes do filme não encontrados. Verifique se o código IMDb é válido.');
     }
   }
 
   createPlayerButtons(torrents) {
     this.buttonContainer.innerHTML = '';
+    if (!torrents || torrents.length === 0) {
+      console.warn('Nenhum torrent encontrado para este filme.');
+      alert('Nenhuma fonte de torrent disponível para este filme.');
+      return;
+    }
+
     torrents.forEach((torrent, index) => {
       const button = document.createElement('button');
       button.textContent = `${torrent.quality}.${torrent.type}.${torrent.video_codec}`;
-      button.setAttribute('aria-label', `Play ${torrent.quality} ${torrent.type}`);
+      button.setAttribute('aria-label', `Reproduzir ${torrent.quality} ${torrent.type}`);
       button.classList.add('fade-in');
       button.onclick = () => this.loadVideo(torrent.hash, button);
       this.buttonContainer.appendChild(button);
+
       if (index === 0) {
+        console.log('Carregando automaticamente o primeiro torrent:', torrent);
         this.loadVideo(torrent.hash, button);
       }
     });
+
     this.showButtonContainer();
   }
 
@@ -129,7 +151,7 @@ class MoviePlayer {
     this.playerContainer.innerHTML = '';
     const magnetLink = this.buildMagnetLink(hash);
 
-    console.log('Magnet link gerado:', magnetLink); // Log para verificar o magnet link
+    console.log('Link magnet gerado:', magnetLink);
 
     window.webtor = window.webtor || [];
     window.webtor.push({
@@ -150,11 +172,12 @@ class MoviePlayer {
         chromecast: true,
       },
       onReady: () => {
-        console.log('Webtor player está pronto'); // Log para verificar inicialização bem-sucedida
-        document.body.classList.add('background-hidden'); // Ocultar o background após o player ser carregado
+        console.log('Player Webtor inicializado com sucesso.');
+        document.body.classList.add('background-hidden');
       },
       onError: (error) => {
-        console.error('Erro ao inicializar o Webtor player:', error); // Log para erros do player
+        console.error('Erro ao inicializar o player Webtor:', error);
+        alert('Erro ao carregar o player. Tente novamente mais tarde.');
       },
     });
 
@@ -182,20 +205,24 @@ class MoviePlayer {
   }
 
   handleInactivity() {
+    console.log('Usuário inativo. Ocultando botões e controles.');
     this.toggleButton.classList.add('fade-out');
     this.buttonContainer.classList.add('fade-out');
   }
 
   resetInactivityTimeout() {
     clearTimeout(this.inactivityTimeout);
+    console.log('Atividade detectada. Restaurando botões e controles.');
     this.toggleButton.classList.remove('fade-out');
     this.buttonContainer.classList.remove('fade-out');
-    this.inactivityTimeout = setTimeout(() => this.handleInactivity(), 3000); // 3 segundos de inatividade
+    const inactivityDuration = 3000; // 3 segundos
+    this.inactivityTimeout = setTimeout(() => this.handleInactivity(), inactivityDuration);
   }
 
   disableShortcuts(event) {
     const forbiddenKeys = ['F12', 'I', 'J', 'U', 'S'];
     if ((event.ctrlKey && forbiddenKeys.includes(event.key.toUpperCase())) || event.key === 'F12') {
+      console.warn('Atalho desativado:', event.key);
       event.preventDefault();
       return false;
     }
