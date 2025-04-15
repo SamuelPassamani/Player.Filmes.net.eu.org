@@ -44,25 +44,21 @@ html {
   color: white;
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s, opacity 0.5s, visibility 0.5s;
+  transition: background-color 0.3s, opacity 0.5s, visibility 0.5s, transform 0.2s;
 }
 
 .button-container button:hover {
   background-color: #7283a3;
+  transform: scale(1.05); /* Efeito ao passar o mouse */
+}
+
+.button-container button:focus {
+  outline: 2px solid #003c7f; /* Foco acessível */
+  outline-offset: 2px;
 }
 
 .button-container button.selected {
   background-color: #003c7f;
-}
-
-.button-container button.fade-out {
-  opacity: 0;
-  visibility: hidden;
-}
-
-.button-container button.fade-in {
-  opacity: 1;
-  visibility: visible;
 }
 
 .iframe-container {
@@ -96,12 +92,22 @@ html {
   color: white;
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s, opacity 0.5s, visibility 0.5s;
+  transition: background-color 0.3s, opacity 0.5s, visibility 0.5s, transform 0.2s;
   z-index: 4; /* Ajustado para garantir que o botão esteja por cima dos botões e do player */
 }
 
 .toggle-btn:hover {
   background-color: #7283a3;
+  transform: scale(1.05); /* Efeito ao passar o mouse */
+}
+
+.toggle-btn:focus {
+  outline: 2px solid #7283a3; /* Foco acessível */
+  outline-offset: 2px;
+}
+
+.toggle-btn.active {
+  background-color: #00509e; /* Estado ativo do botão "menu" */
 }
 
 .toggle-btn.fade-out {
