@@ -87,9 +87,10 @@ class MoviePlayer {
       console.log('Buscando detalhes do filme com o código IMDb: ', imdbCode);
       this.fetchMovieDetails(imdbCode);
 
-      // Mostrar o botão de menu quando o parâmetro "id" estiver presente
+      // Mostrar o botão de menu e configurar o evento de clique
       if (this.toggleButton) {
         this.toggleButton.style.display = 'block';
+        this.toggleButton.addEventListener('click', () => this.toggleButtonContainer());
       } else {
         console.warn('Botão de menu não encontrado no DOM.');
       }
