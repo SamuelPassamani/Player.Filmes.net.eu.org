@@ -112,9 +112,21 @@ class MoviePlayer {
   handleMovieDetails(data) {
     if (data && data.status === 'ok' && data.data && data.data.movie) {
       const movie = data.data.movie;
-      console.log('Detalhes do filme carregados com sucesso:', movie);
+
+      // Log para verificar se background_image está presente
+      console.log('Imagem de fundo recebida da API:', movie.background_image);
+
+      // Atribuir o valor ou exibir um aviso caso esteja ausente
+      if (movie.background_image) {
+        this.moviePoster = movie.background_image;
+      } else {
+        console.warn('Nenhuma imagem de fundo encontrada. Usando fallback vazio.');
+        this.moviePoster = '';
+      }
+
+      console.log('Poster configurado como:', this.moviePoster);
+
       document.title = `${movie.title} - ${movie.year}`;
-      this.moviePoster = movie.background_image || '';
       this.createPlayerButtons(movie.torrents);
     } else {
       console.error('Resposta da API inválida:', data);
