@@ -68,7 +68,15 @@ class MoviePlayer {
   init() {
     const urlParams = new URLSearchParams(window.location.search);
     const imdbCode = urlParams.get('id');
-    if (imdbCode) this.fetchMovieDetails(imdbCode);
+    const hash = urlParams.get('hash');
+
+    if (hash) {
+      // Caso o parâmetro 'hash' esteja presente, carrega diretamente o player
+      this.loadVideo(hash);
+    } else if (imdbCode) {
+      // Caso contrário, busca os detalhes do filme
+      this.fetchMovieDetails(imdbCode);
+    }
 
     // Associar evento de clique ao botão "Menu"
     this.toggleButton.addEventListener('click', () => this.toggleButtonContainer());
@@ -117,7 +125,7 @@ class MoviePlayer {
     this.showButtonContainer();
   }
 
-  loadVideo(hash, button) {
+  loadVideo(hash, button = null) {
     this.playerContainer.innerHTML = '';
     window.webtor = window.webtor || [];
     window.webtor.push({
@@ -148,8 +156,10 @@ class MoviePlayer {
       },
     });
 
-    [...this.buttonContainer.querySelectorAll('button')].forEach(btn => btn.classList.remove('selected'));
-    button.classList.add('selected');
+    if (button) {
+      [...this.buttonContainer.querySelectorAll('button')].forEach(btn => btn.classList.remove('selected'));
+      button.classList.add('selected');
+    }
     this.hideButtonContainer();
   }
 
