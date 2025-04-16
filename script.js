@@ -188,7 +188,7 @@ class MoviePlayer {
       lang: 'pt', // Configuração de idioma
       userLang: 'pt', // Configuração de idioma do usuário
       imdbId: imdbCode, // Configuração de IMDb
-      header: false,
+      header: 'false',
       features: {
         autoSubtitles: true,
         continue: true,
