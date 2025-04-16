@@ -140,14 +140,14 @@ class MoviePlayer {
       console.log('Poster configurado como:', this.moviePoster);
 
       document.title = `${movie.title} - ${movie.year}`;
-      this.createPlayerButtons(movie.torrents);
+      this.createPlayerButtons(movie.torrents, movie.imdb_id);
     } else {
       console.error('Resposta da API inválida:', data);
       alert('Detalhes do filme não encontrados. Verifique se o código IMDb é válido.');
     }
   }
 
-  createPlayerButtons(torrents) {
+  createPlayerButtons(torrents, imdbId = null) {
     this.buttonContainer.innerHTML = '';
     if (!torrents || torrents.length === 0) {
       console.warn('Nenhum torrent encontrado para este filme.');
@@ -160,19 +160,19 @@ class MoviePlayer {
       button.textContent = `${torrent.quality}.${torrent.type}.${torrent.video_codec}`;
       button.setAttribute('aria-label', `Reproduzir ${torrent.quality} ${torrent.type}`);
       button.classList.add('fade-in');
-      button.onclick = () => this.loadVideo(torrent.hash, button);
+      button.onclick = () => this.loadVideo(torrent.hash, button, imdbId);
       this.buttonContainer.appendChild(button);
 
       if (index === 0) {
         console.log('Carregando automaticamente o primeiro torrent:', torrent);
-        this.loadVideo(torrent.hash, button);
+        this.loadVideo(torrent.hash, button, imdbId);
       }
     });
 
     this.showButtonContainer();
   }
 
-  loadVideo(hash, button = null) {
+  loadVideo(hash, button = null, imdbId = null) {
     this.playerContainer.innerHTML = '';
     const magnetLink = this.buildMagnetLink(hash);
 
@@ -187,6 +187,7 @@ class MoviePlayer {
       poster: this.moviePoster,
       lang: 'pt', // Configuração de idioma
       userLang: 'pt', // Configuração de idioma do usuário
+      imdbId: imdbCode, // Configuração de IMDb
       features: {
         autoSubtitles: true,
         continue: true,
