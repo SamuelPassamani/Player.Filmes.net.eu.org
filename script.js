@@ -75,6 +75,7 @@ class MoviePlayer {
       console.log('Carregando vídeo diretamente com o hash fornecido na URL.');
       this.moviePoster = this.defaultPoster; // Carrega a imagem padrão para 'hash'
       console.log('Poster padrão configurado para hash:', this.moviePoster);
+      document.title = "MakingOff Torrent Player"; // Atualiza o título para "hash"
       this.loadVideo(hash);
 
       // Ocultar o botão de menu quando o parâmetro "hash" estiver presente
