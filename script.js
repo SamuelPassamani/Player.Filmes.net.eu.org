@@ -7,7 +7,12 @@ class MoviePlayer {
     this.inactivityTimeout = null;
     this.moviePoster = '';
     this.defaultPoster = 'https://lh3.googleusercontent.com/d/1DLTzvLxRZOaXWbXFaOosYNfc9zfIWIpV?authuser=0';
-    this.TRACKERS = [
+    this.TRACKERS = this.initializeTrackers();
+  }
+
+  // Modularized function to initialize the list of trackers
+  initializeTrackers() {
+    return [
       'udp://tracker.coppersurfer.tk:6969/announce',
       'udp://9.rarbg.com:2710/announce',
       'udp://p4p.arenabg.com:1337/announce',
@@ -107,35 +112,57 @@ class MoviePlayer {
     const imdbCode = urlParams.get('id');
     const hash = urlParams.get('hash');
 
-    if (hash) {
-      console.log('Carregando vídeo diretamente com o hash fornecido na URL.');
-      this.moviePoster = this.defaultPoster; // Carrega a imagem padrão para 'hash'
-      console.log('Poster padrão configurado para hash:', this.moviePoster);
-      document.title = "MakingOff Torrent Player"; // Atualiza o título para "hash"
-      this.loadVideo(hash);
-
-      // Ocultar o botão de menu quando o parâmetro "hash" estiver presente
-      if (this.toggleButton) {
-        this.toggleButton.style.display = 'none';
-      } else {
-        console.warn('Botão de menu não encontrado no DOM.');
-      }
-    } else if (imdbCode) {
-      console.log('Buscando detalhes do filme com o código IMDb: ', imdbCode);
-      this.fetchMovieDetails(imdbCode);
-
-      // Mostrar o botão de menu e configurar o evento de clique
-      if (this.toggleButton) {
-        this.toggleButton.style.display = 'block';
-        this.toggleButton.addEventListener('click', () => this.toggleButtonContainer());
-      } else {
-        console.warn('Botão de menu não encontrado no DOM.');
-      }
+    if (this.isValidHash(hash)) {
+      this.handleHashFlow(hash);
+    } else if (this.isValidImdbCode(imdbCode)) {
+      this.handleImdbFlow(imdbCode);
     } else {
-      console.error('Parâmetros "id" e "hash" ausentes na URL. Não é possível carregar o filme.');
-      alert('Erro: Parâmetros "id" ou "hash" ausentes. Verifique a URL e tente novamente.');
+      this.handleMissingParams();
     }
 
+    this.setupInactivityHandler();
+  }
+
+  isValidHash(hash) {
+    return hash && typeof hash === 'string' && hash.length === 40; // Valid hash length for torrents
+  }
+
+  isValidImdbCode(imdbCode) {
+    return imdbCode && typeof imdbCode === 'string' && imdbCode.length > 0;
+  }
+
+  handleHashFlow(hash) {
+    console.log('Carregando vídeo diretamente com o hash fornecido na URL.');
+    this.moviePoster = this.defaultPoster;
+    console.log('Poster padrão configurado para hash:', this.moviePoster);
+    document.title = "MakingOff Torrent Player";
+    this.loadVideo(hash);
+    this.toggleMenuVisibility(false);
+  }
+
+  handleImdbFlow(imdbCode) {
+    console.log('Buscando detalhes do filme com o código IMDb:', imdbCode);
+    this.fetchMovieDetails(imdbCode);
+    this.toggleMenuVisibility(true);
+  }
+
+  handleMissingParams() {
+    console.error('Parâmetros "id" e "hash" ausentes na URL. Não é possível carregar o filme.');
+    alert('Erro: Parâmetros "id" ou "hash" ausentes. Verifique a URL e tente novamente.');
+  }
+
+  toggleMenuVisibility(show) {
+    if (this.toggleButton) {
+      this.toggleButton.style.display = show ? 'block' : 'none';
+      if (show) {
+        this.toggleButton.addEventListener('click', () => this.toggleButtonContainer());
+      }
+    } else {
+      console.warn('Botão de menu não encontrado no DOM.');
+    }
+  }
+
+  setupInactivityHandler() {
     document.addEventListener('mousemove', () => this.resetInactivityTimeout());
     document.addEventListener('keydown', () => this.resetInactivityTimeout());
     const inactivityDuration = 3000; // 3 segundos
@@ -161,20 +188,8 @@ class MoviePlayer {
   handleMovieDetails(data) {
     if (data && data.status === 'ok' && data.data && data.data.movie) {
       const movie = data.data.movie;
-
-      // Log para verificar se background_image está presente
-      console.log('Imagem de fundo recebida da API:', movie.background_image);
-
-      // Atribuir o valor ou exibir um aviso caso esteja ausente
-      if (movie.background_image) {
-        this.moviePoster = movie.background_image;
-      } else {
-        console.warn('Nenhuma imagem de fundo encontrada. Usando fallback vazio.');
-        this.moviePoster = '';
-      }
-
+      this.moviePoster = movie.background_image || this.defaultPoster;
       console.log('Poster configurado como:', this.moviePoster);
-
       document.title = `${movie.title} - ${movie.year}`;
       this.createPlayerButtons(movie.torrents, movie.imdb_id);
     } else {
@@ -221,9 +236,9 @@ class MoviePlayer {
       height: '100%',
       magnet: magnetLink,
       poster: this.moviePoster,
-      lang: 'pt', // Configuração de idioma
-      userLang: 'pt', // Configuração de idioma do usuário
-      imdbId: imdbCode, // Configuração de IMDb
+      lang: 'pt',
+      userLang: 'pt',
+      imdbId: imdbId,
       features: {
         autoSubtitles: true,
         continue: true,
@@ -246,10 +261,14 @@ class MoviePlayer {
     });
 
     if (button) {
-      [...this.buttonContainer.querySelectorAll('button')].forEach(btn => btn.classList.remove('selected'));
-      button.classList.add('selected');
+      this.highlightSelectedButton(button);
     }
     this.hideButtonContainer();
+  }
+
+  highlightSelectedButton(button) {
+    [...this.buttonContainer.querySelectorAll('button')].forEach(btn => btn.classList.remove('selected'));
+    button.classList.add('selected');
   }
 
   buildMagnetLink(hash) {
