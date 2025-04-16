@@ -185,6 +185,8 @@ class MoviePlayer {
       height: '100%',
       magnet: magnetLink,
       poster: this.moviePoster,
+      lang: 'pt', // Configuração de idioma
+      userLang: 'pt', // Configuração de idioma do usuário
       features: {
         autoSubtitles: true,
         continue: true,
