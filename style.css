@@ -121,6 +121,25 @@ html {
   visibility: visible;
 }
 
+/* Estilos para a imagem fixa */
+#fixed-logo {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1000; /* Garante que fique acima de outros elementos */
+}
+
+#fixed-logo img {
+  width: 50px;
+  height: auto;
+  cursor: pointer;
+  transition: transform 0.3s ease; /* Animação de hover */
+}
+
+#fixed-logo img:hover {
+  transform: scale(1.1); /* Aumenta a imagem ao passar o mouse */
+}
+
 /* Media queries para responsividade */
 @media (max-width: 768px) {
   .button-container {
