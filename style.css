@@ -18,6 +18,13 @@ html {
   display: none; /* Esconde elementos quando o fundo não é necessário */
 }
 
+.ads-container {
+  width: 100%;
+  text-align: center;
+  margin: 10px 0; /* Espaçamento entre o ADS e os botões */
+  z-index: 3; /* Garante que o ADS esteja acima de elementos de fundo */
+}
+
 .button-container {
   display: flex;
   justify-content: center;
