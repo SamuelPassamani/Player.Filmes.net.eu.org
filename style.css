@@ -130,7 +130,7 @@ html {
 }
 
 #fixed-logo img {
-  width: 120px;
+  width: 170px;
   height: auto;
   cursor: pointer;
   transition: transform 0.3s ease; /* Animação de hover */
