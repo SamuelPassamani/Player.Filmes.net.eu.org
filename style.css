@@ -20,7 +20,7 @@ html {
 
 .ads-container {
   position: absolute; /* Posiciona o ADS acima do player */
-  top: 500;
+  top: 250;
   left: 0;
   width: 100%; /* Largura do banner */
   text-align: center;
