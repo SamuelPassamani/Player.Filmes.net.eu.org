@@ -125,12 +125,12 @@ html {
 #fixed-logo {
   position: fixed;
   top: 10px;
-  right: 10px;
+  right: 20px;
   z-index: 1000; /* Garante que fique acima de outros elementos */
 }
 
 #fixed-logo img {
-  width: 170px;
+  width: 200px;
   height: auto;
   cursor: pointer;
   transition: transform 0.3s ease; /* Animação de hover */
