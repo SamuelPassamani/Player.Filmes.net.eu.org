@@ -19,10 +19,14 @@ html {
 }
 
 .ads-container {
-  width: 100%;
+  position: absolute; /* Posiciona o ADS acima do player */
+  top: 0;
+  left: 0;
+  width: 100%; /* Largura do banner */
   text-align: center;
-  margin: 10px 0; /* Espaçamento entre o ADS e os botões */
-  z-index: 3; /* Garante que o ADS esteja acima de elementos de fundo */
+  z-index: 5; /* Garante que o ADS esteja acima do player (z-index maior que 2) */
+  padding: 10px; /* Espaçamento opcional ao redor do ADS */
+  background-color: rgba(255, 255, 255, 0.8); /* Fundo semitransparente para destaque */
 }
 
 .button-container {
