@@ -78,7 +78,7 @@ html {
 #webtor-player {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* Mantém a proporção do vídeo */
+  object-fit: cover; /* Ajusta para cobrir toda a área, mantendo a proporção */
 }
 
 .toggle-btn {
