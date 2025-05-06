@@ -15,95 +15,6 @@ class MoviePlayer {
     return [
       'udp://tracker.coppersurfer.tk:6969/announce',
       'udp://9.rarbg.com:2710/announce',
-      'udp://p4p.arenabg.com:1337/announce',
-      'udp://tracker.leechers-paradise.org:6969',
-      'udp://tracker.internetwarriors.net:1337',
-      'udp://tracker.opentrackr.org:1337/announce',
-      'http://tracker.mywaifu.best:6969/announce',
-      'udp://open.demonii.com:1337/announce',
-      'udp://tracker.qu.ax:6969/announce',
-      'udp://tracker.skynetcloud.site:6969/announce',
-      'udp://ttk2.nbaonlineservice.com:6969/announce',
-      'http://tracker.privateseedbox.xyz:2710/announce',
-      'udp://evan.im:6969/announce',
-      'https://tracker.yemekyedim.com:443/announce',
-      'https://tracker.bjut.jp:443/announce',
-      'udp://ismaarino.com:1234/announce',
-      'https://tracker.leechshield.link:443/announce',
-      'https://tr.zukizuki.org:443/announce',
-      'http://fleira.no:6969/announce',
-      'udp://udp.tracker.projectk.org:23333/announce',
-      'https://tracker.aburaya.live:443/announce',
-      'https://tracker.zhuqiy.top:443/announce',
-      'http://lucke.fenesisu.moe:6969/announce',
-      'http://tracker.renfei.net:8080/announce',
-      'https://tracker.guguan.dpdns.org:443/announce',
-      'udp://d40969.acod.regrucolo.ru:6969/announce',
-      'udp://p2p.publictracker.xyz:6969/announce',
-      'http://tracker.beeimg.com:6969/announce',
-      'udp://tracker.valete.tf:9999/announce',
-      'http://tracker.bt4g.com:2095/announce',
-      'udp://tracker.0x7c0.com:6969/announce',
-      'udp://martin-gebhardt.eu:25/announce',
-      'udp://tracker.tryhackx.org:6969/announce',
-      'udp://bandito.byterunner.io:6969/announce',
-      'http://bt.okmp3.ru:2710/announce',
-      'udp://tracker.gmi.gd:6969/announce',
-      'udp://tracker.gigantino.net:6969/announce',
-      'udp://tracker.kmzs123.cn:17272/announce',
-      'udp://tracker.dler.com:6969/announce',
-      'udp://tracker.srv00.com:6969/announce',
-      'udp://open.stealth.si:80/announce',
-      'http://tracker.ipv6tracker.ru:80/announce',
-      'udp://tracker.darkness.services:6969/announce',
-      'https://tracker.lilithraws.org:443/announce',
-      'http://ipv6.rer.lol:6969/announce',
-      'udp://tracker.kmzs123.top:17272/announce',
-      'http://torrent.hificode.in:6969/announce',
-      'udp://tracker.torrent.eu.org:451/announce',
-      'udp://tracker.fnix.net:6969/announce',
-      'http://tracker.netmap.top:6969/announce',
-      'http://4.tracker.devnak.win:6969/announce',
-      'udp://retracker.hotplug.ru:2710/announce',
-      'udp://opentracker.io:6969/announce',
-      'http://bt1.archive.org:6969/announce',
-      'http://bt2.archive.org:6969/announce',
-      'udp://tracker.openbittorrent.com:80/announce',
-      'udp://tracker.opentrackr.org:1337/announce',
-      'udp://tracker.torrent.eu.org:451/announce',
-      'udp://tracker.fnix.net:6969/announce',
-      'udp://tracker1.bt.moack.co.kr:80/announce',
-      'udp://tracker0.ufibox.com:6969/announce',
-      'udp://tracker.zerobytes.xyz:1337/announce',
-      'udp://tracker.uw0.xyz:6969/announce',
-      'udp://tracker.ololosh.space:6969/announce',
-      'udp://tracker.nrx.me:6969/announce',
-      'udp://tracker.monitorit4.me:6969/announce',
-      'udp://tracker.leech.ie:1337/announce',
-      'udp://tracker.dler.org:6969/announce',
-      'udp://tracker.army:6969/announce',
-      'udp://tracker.altrosky.nl:6969/announce',
-      'udp://tracker.0x.tf:6969/announce',
-      'udp://tracker-de.ololosh.space:6969/announce',
-      'udp://tr.cili001.com:8070/announce',
-      'udp://retracker.netbynet.ru:2710/announce',
-      'udp://public.publictracker.xyz:6969/announce',
-      'udp://open.publictracker.xyz:6969/announce',
-      'udp://mts.tvbit.co:6969/announce',
-      'udp://mail.realliferpg.de:6969/announce',
-      'udp://ipv4.tracker.harry.lu:80/announce',
-      'udp://fe.dealclub.de:6969/announce',
-      'udp://engplus.ru:6969/announce',
-      'udp://edu.uifr.ru:6969/announce',
-      'udp://discord.heihachi.pw:6969/announce',
-      'udp://camera.lei001.com:6969/announce',
-      'udp://bubu.mapfactor.com:6969/announce',
-      'udp://bt2.archive.org:6969/announce',
-      'udp://app.icon256.com:8000/announce',
-      'https://trakx.herokuapp.com:443/announce',
-      'https://tracker.lilithraws.cf:443/announce',
-      'https://tracker.iriseden.fr:443/announce',
-      'udp://tracker.theoks.net:6969/announce'
     ];
   }
 
@@ -121,6 +32,7 @@ class MoviePlayer {
     }
 
     this.setupInactivityHandler();
+    this.showAdsModal(); // Exibe o modal de Ads ao iniciar
   }
 
   isValidHash(hash) {
@@ -266,49 +178,34 @@ class MoviePlayer {
     this.hideButtonContainer();
   }
 
-  highlightSelectedButton(button) {
-    [...this.buttonContainer.querySelectorAll('button')].forEach(btn => btn.classList.remove('selected'));
-    button.classList.add('selected');
-  }
+  showAdsModal() {
+    const modal = document.getElementById('ads-modal');
+    const closeBtn = document.getElementById('close-ads-btn');
+    const countdownTimer = document.getElementById('countdown-timer');
 
-  buildMagnetLink(hash) {
-    return `magnet:?xt=urn:btih:${hash}&tr=${this.TRACKERS.map(encodeURIComponent).join('&tr=')}`;
-  }
+    let countdown = 15;
 
-  toggleButtonContainer() {
-    this.buttonContainer.classList.toggle('visible');
-  }
+    const interval = setInterval(() => {
+      countdown -= 1;
+      if (countdown > 0) {
+        countdownTimer.textContent = `Aguarde ${countdown} segundos...`;
+      } else {
+        clearInterval(interval);
+        countdownTimer.textContent = "Clique em 'Fechar Ads' para continuar";
+        closeBtn.textContent = "Fechar Ads";
+        closeBtn.disabled = false;
+      }
+    }, 1000);
 
-  showButtonContainer() {
-    this.buttonContainer.classList.add('visible');
-  }
+    closeBtn.onclick = () => {
+      if (!closeBtn.disabled) {
+        modal.classList.add('hidden');
+        this.playerContainer.style.pointerEvents = 'auto'; // Libera o player
+      }
+    };
 
-  hideButtonContainer() {
-    this.buttonContainer.classList.remove('visible');
-  }
-
-  handleInactivity() {
-    console.log('Usuário inativo. Ocultando botões e controles.');
-    this.toggleButton.classList.add('fade-out');
-    this.buttonContainer.classList.add('fade-out');
-  }
-
-  resetInactivityTimeout() {
-    clearTimeout(this.inactivityTimeout);
-    console.log('Atividade detectada. Restaurando botões e controles.');
-    this.toggleButton.classList.remove('fade-out');
-    this.buttonContainer.classList.remove('fade-out');
-    const inactivityDuration = 3000; // 3 segundos
-    this.inactivityTimeout = setTimeout(() => this.handleInactivity(), inactivityDuration);
-  }
-
-  disableShortcuts(event) {
-    const forbiddenKeys = ['F12', 'I', 'J', 'U', 'S'];
-    if ((event.ctrlKey && forbiddenKeys.includes(event.key.toUpperCase())) || event.key === 'F12') {
-      console.warn('Atalho desativado:', event.key);
-      event.preventDefault();
-      return false;
-    }
+    modal.classList.remove('hidden');
+    this.playerContainer.style.pointerEvents = 'none'; // Bloqueia o player
   }
 }
 
