@@ -8,6 +8,11 @@ class MoviePlayer {
     this.moviePoster = '';
     this.defaultPoster = 'https://lh3.googleusercontent.com/d/1DLTzvLxRZOaXWbXFaOosYNfc9zfIWIpV?authuser=0';
     this.TRACKERS = this.initializeTrackers();
+    // Validação dos elementos do DOM
+    if (!this.playerContainer || !this.buttonContainer) {
+      this.showError('Elementos do player ou dos botões não encontrados no DOM.');
+      throw new Error('Elementos do player ou dos botões não encontrados no DOM.');
+    }
   }
 
   // Modularized function to initialize the list of trackers
@@ -60,14 +65,41 @@ class MoviePlayer {
 
   handleMissingParams() {
     console.error('Parâmetros "id" e "hash" ausentes na URL. Não é possível carregar o filme.');
-    alert('Erro: Parâmetros "id" ou "hash" ausentes. Verifique a URL e tente novamente.');
+    this.showError('Erro: Parâmetros "id" ou "hash" ausentes. Verifique a URL e tente novamente.');
+  }
+
+  showError(message) {
+    let errorDiv = document.getElementById('error-message');
+    if (!errorDiv) {
+      errorDiv = document.createElement('div');
+      errorDiv.id = 'error-message';
+      errorDiv.setAttribute('role', 'alert');
+      errorDiv.style.position = 'fixed';
+      errorDiv.style.top = '10px';
+      errorDiv.style.left = '50%';
+      errorDiv.style.transform = 'translateX(-50%)';
+      errorDiv.style.background = '#f44336';
+      errorDiv.style.color = '#fff';
+      errorDiv.style.padding = '10px 20px';
+      errorDiv.style.zIndex = '9999';
+      errorDiv.style.borderRadius = '5px';
+      document.body.appendChild(errorDiv);
+    }
+    errorDiv.textContent = message;
+    setTimeout(() => {
+      errorDiv.textContent = '';
+      errorDiv.style.display = 'none';
+    }, 5000);
+    errorDiv.style.display = 'block';
   }
 
   toggleMenuVisibility(show) {
     if (this.toggleButton) {
       this.toggleButton.style.display = show ? 'block' : 'none';
+      this.toggleButton.removeEventListener('click', this._toggleMenuHandler);
       if (show) {
-        this.toggleButton.addEventListener('click', () => this.toggleButtonContainer());
+        this._toggleMenuHandler = () => this.toggleButtonContainer();
+        this.toggleButton.addEventListener('click', this._toggleMenuHandler);
       }
     } else {
       console.warn('Botão de menu não encontrado no DOM.');
@@ -77,12 +109,29 @@ class MoviePlayer {
   setupInactivityHandler() {
     document.addEventListener('mousemove', () => this.resetInactivityTimeout());
     document.addEventListener('keydown', () => this.resetInactivityTimeout());
-    const inactivityDuration = 3000; // 3 segundos
+    this.resetInactivityTimeout();
+  }
+
+  resetInactivityTimeout() {
+    if (this.inactivityTimeout) {
+      clearTimeout(this.inactivityTimeout);
+    }
+    const inactivityDuration = 3000;
     this.inactivityTimeout = setTimeout(() => this.handleInactivity(), inactivityDuration);
   }
 
+  handleInactivity() {
+    // Exemplo: ocultar controles do player
+    if (this.buttonContainer) {
+      this.buttonContainer.style.opacity = '0.3';
+    }
+    if (this.toggleButton) {
+      this.toggleButton.style.opacity = '0.3';
+    }
+  }
+
   fetchMovieDetails(imdbCode) {
-    const url = `${this.apiUrl}?with_images=true&with_cast=true&imdb_id=${imdbCode}`;
+    const url = `${this.apiUrl}?with_images=true&with_cast=true&imdb_id=${encodeURIComponent(imdbCode)}`;
     fetch(url)
       .then(response => {
         if (!response.ok) {
@@ -93,20 +142,23 @@ class MoviePlayer {
       .then(data => this.handleMovieDetails(data))
       .catch(error => {
         console.error('Erro ao buscar detalhes do filme:', error);
-        alert('Erro ao buscar detalhes do filme. Tente novamente mais tarde.');
+        this.showError('Erro ao buscar detalhes do filme. Tente novamente mais tarde.');
       });
   }
 
   handleMovieDetails(data) {
     if (data && data.status === 'ok' && data.data && data.data.movie) {
       const movie = data.data.movie;
+      // Sanitização básica
+      const title = String(movie.title || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const year = String(movie.year || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       this.moviePoster = movie.background_image || this.defaultPoster;
       console.log('Poster configurado como:', this.moviePoster);
-      document.title = `${movie.title} - ${movie.year}`;
+      document.title = `${title} - ${year}`;
       this.createPlayerButtons(movie.torrents, movie.imdb_id);
     } else {
       console.error('Resposta da API inválida:', data);
-      alert('Detalhes do filme não encontrados. Verifique se o código IMDb é válido.');
+      this.showError('Detalhes do filme não encontrados. Verifique se o código IMDb é válido.');
     }
   }
 
@@ -114,33 +166,81 @@ class MoviePlayer {
     this.buttonContainer.innerHTML = '';
     if (!torrents || torrents.length === 0) {
       console.warn('Nenhum torrent encontrado para este filme.');
-      alert('Nenhuma fonte de torrent disponível para este filme.');
+      this.showError('Nenhuma fonte de torrent disponível para este filme.');
       return;
     }
-
+    let firstLoaded = false;
     torrents.forEach((torrent, index) => {
       const button = document.createElement('button');
       button.textContent = `${torrent.quality}.${torrent.type}.${torrent.video_codec}`;
       button.setAttribute('aria-label', `Reproduzir ${torrent.quality} ${torrent.type}`);
       button.classList.add('fade-in');
+      button.setAttribute('tabindex', '0');
       button.onclick = () => this.loadVideo(torrent.hash, button, imdbId);
       this.buttonContainer.appendChild(button);
-
-      if (index === 0) {
+      if (index === 0 && !firstLoaded) {
+        firstLoaded = true;
         console.log('Carregando automaticamente o primeiro torrent:', torrent);
         this.loadVideo(torrent.hash, button, imdbId);
       }
     });
-
     this.showButtonContainer();
+  }
+
+  buildMagnetLink(hash) {
+    // Monta o magnet link usando os trackers
+    let magnet = `magnet:?xt=urn:btih:${hash}`;
+    this.TRACKERS.forEach(tracker => {
+      magnet += `&tr=${encodeURIComponent(tracker)}`;
+    });
+    return magnet;
+  }
+
+  highlightSelectedButton(button) {
+    // Remove destaque dos outros botões
+    Array.from(this.buttonContainer.children).forEach(btn => {
+      btn.classList.remove('selected');
+      btn.setAttribute('aria-pressed', 'false');
+    });
+    button.classList.add('selected');
+    button.setAttribute('aria-pressed', 'true');
+  }
+
+  showButtonContainer() {
+    this.buttonContainer.style.display = 'block';
+    this.buttonContainer.style.opacity = '1';
+  }
+
+  hideButtonContainer() {
+    this.buttonContainer.style.display = 'none';
+  }
+
+  toggleButtonContainer() {
+    if (this.buttonContainer.style.display === 'none' || this.buttonContainer.style.opacity === '0.3') {
+      this.showButtonContainer();
+      this.buttonContainer.style.opacity = '1';
+      if (this.toggleButton) this.toggleButton.style.opacity = '1';
+    } else {
+      this.hideButtonContainer();
+    }
+  }
+
+  disableShortcuts(event) {
+    // Exemplo: desabilitar F12, Ctrl+U, Ctrl+Shift+I
+    if (
+      event.key === 'F12' ||
+      (event.ctrlKey && event.key.toLowerCase() === 'u') ||
+      (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'i')
+    ) {
+      event.preventDefault();
+      this.showError('Atalho desabilitado nesta página.');
+    }
   }
 
   loadVideo(hash, button = null, imdbId = null) {
     this.playerContainer.innerHTML = '';
     const magnetLink = this.buildMagnetLink(hash);
-
     console.log('Link magnet gerado:', magnetLink);
-
     window.webtor = window.webtor || [];
     window.webtor.push({
       id: this.playerContainer.id,
@@ -168,10 +268,9 @@ class MoviePlayer {
       },
       onError: (error) => {
         console.error('Erro ao inicializar o player Webtor:', error);
-        alert('Erro ao carregar o player. Tente novamente mais tarde.');
+        this.showError('Erro ao carregar o player. Tente novamente mais tarde.');
       },
     });
-
     if (button) {
       this.highlightSelectedButton(button);
     }
@@ -182,9 +281,13 @@ class MoviePlayer {
     const modal = document.getElementById('ads-modal');
     const closeBtn = document.getElementById('close-ads-btn');
     const countdownTimer = document.getElementById('countdown-timer');
-
+    if (!modal || !closeBtn || !countdownTimer) {
+      this.showError('Elementos do modal de anúncios não encontrados.');
+      return;
+    }
     let countdown = 15;
-
+    closeBtn.setAttribute('aria-disabled', 'true');
+    closeBtn.setAttribute('tabindex', '0');
     const interval = setInterval(() => {
       countdown -= 1;
       if (countdown > 0) {
@@ -194,16 +297,15 @@ class MoviePlayer {
         countdownTimer.textContent = "Clique em 'Fechar Ads' para continuar";
         closeBtn.textContent = "Fechar Ads";
         closeBtn.disabled = false;
+        closeBtn.setAttribute('aria-disabled', 'false');
       }
     }, 1000);
-
     closeBtn.onclick = () => {
       if (!closeBtn.disabled) {
         modal.classList.add('hidden');
         this.playerContainer.style.pointerEvents = 'auto'; // Libera o player
       }
     };
-
     modal.classList.remove('hidden');
     this.playerContainer.style.pointerEvents = 'none'; // Bloqueia o player
   }
@@ -217,6 +319,5 @@ document.addEventListener('DOMContentLoaded', () => {
     'toggle-btn'
   );
   moviePlayer.init();
-
   document.addEventListener('keydown', event => moviePlayer.disableShortcuts(event));
 });
