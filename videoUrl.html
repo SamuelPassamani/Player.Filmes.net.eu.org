@@ -25,16 +25,25 @@
     const playerContainer = document.getElementById('player-container');
     const urlVideoDiv = document.getElementById('url-video');
 
+    function isMagnetLink(str) {
+      return str.startsWith('magnet:?xt=urn:btih:');
+    }
+
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       const magnet = document.getElementById('magnet').value.trim();
-      if (!magnet) return;
+      if (!magnet || !isMagnetLink(magnet)) {
+        urlVideoDiv.textContent = 'Magnetlink inválido!';
+        return;
+      }
       playerContainer.innerHTML = '';
       urlVideoDiv.textContent = 'Buscando...';
 
       // Cria o player embed Webtor
       const div = document.createElement('div');
       div.setAttribute('id', 'webtor-player');
+      // Corrige: adiciona atributo allow corretamente
+      div.setAttribute('allow', 'fullscreen');
       playerContainer.appendChild(div);
       window.webtor = window.webtor || [];
       window.webtor.push({
@@ -43,9 +52,11 @@
         width: 640,
         height: 360,
         on: {
-          // Evento chamado quando o player está pronto
           ready: function() {
             urlVideoDiv.textContent = 'Player carregado, aguardando requisições de vídeo...';
+          },
+          error: function(err) {
+            urlVideoDiv.textContent = 'Erro ao carregar o player ou magnetlink inválido.';
           }
         }
       });
