@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Buscar URL de Vídeo por IMDb ID</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    #player-frame { width: 100%; height: 400px; border: 1px solid #ccc; margin-top: 20px; }
+    #url-video { margin-top: 20px; font-weight: bold; color: green; }
+  </style>
+</head>
+<body>
+  <h2>Buscar URL de Vídeo</h2>
+  <form id="form-imdb">
+    <label for="imdbId">IMDb ID:</label>
+    <input type="text" id="imdbId" name="imdbId" placeholder="Ex: tt21261712" required>
+    <button type="submit">Buscar</button>
+  </form>
+  <iframe id="player-frame"></iframe>
+  <div id="url-video"></div>
+
+  <script>
+    const form = document.getElementById('form-imdb');
+    const iframe = document.getElementById('player-frame');
+    const urlVideoDiv = document.getElementById('url-video');
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const imdbId = document.getElementById('imdbId').value.trim();
+      if (!imdbId) return;
+      iframe.src = `https://player.filmes.net.eu.org/?id=${imdbId}`;
+      urlVideoDiv.textContent = 'Buscando...';
+    });
+
+    // ATENÇÃO: O script abaixo só funciona se o iframe estiver no mesmo domínio!
+    // Caso contrário, por política de segurança do navegador, não é possível acessar o conteúdo do iframe.
+
+    iframe.onload = function() {
+      try {
+        const iframeWindow = iframe.contentWindow;
+
+        // Intercepta fetch
+        const originalFetch = iframeWindow.fetch;
+        iframeWindow.fetch = async function(...args) {
+          if (
+            args[0] &&
+            typeof args[0] === 'string' &&
+            (args[0].includes('.m3u8') || args[0].includes('index.m3u8') || args[0].includes('.mp4'))
+          ) {
+            urlVideoDiv.textContent = 'URL encontrada: ' + args[0];
+            window.videoUrlEncontrada = args[0];
+          }
+          return originalFetch.apply(this, args);
+        };
+
+        // Intercepta XMLHttpRequest
+        const originalOpen = iframeWindow.XMLHttpRequest.prototype.open;
+        iframeWindow.XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+          if (
+            url &&
+            (url.includes('.m3u8') || url.includes('index.m3u8') || url.includes('.mp4'))
+          ) {
+            urlVideoDiv.textContent = 'URL encontrada: ' + url;
+            window.videoUrlEncontrada = url;
+          }
+          return originalOpen.apply(this, [method, url, ...rest]);
+        };
+      } catch (err) {
+        urlVideoDiv.textContent = 'Não foi possível acessar o conteúdo do player (domínio diferente).';
+      }
+    };
+  </script>
+</body>
+</html>
