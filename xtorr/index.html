@@ -252,13 +252,16 @@
         <!-- Grid de Filmes -->
         <div id="movies-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8"></div>
         <!-- Paginação e Limite -->
-        <div class="flex justify-between items-center mb-8 w-full">
+        <div class="flex justify-between items-center mb-8">
+          <div class="flex items-center gap-2">
+            <button id="prev-page" class="bg-gray-700 text-white px-4 py-2 rounded-md">Anterior</button>
+            <span id="page-info" class="text-white font-bold"></span>
+            <button id="next-page" class="bg-gray-700 text-white px-4 py-2 rounded-md">Próxima</button>
+          </div>
           <div class="flex items-center gap-2">
             <label for="limit" class="text-white">Limite:</label>
             <input id="limit" type="number" min="1" max="50" value="50" class="bg-gray-800 border border-gray-600 rounded-md px-2 py-1 text-white w-16">
           </div>
-          <div id="pagination-controls" class="flex items-center gap-2"></div>
-          <div class="text-white font-bold" id="total-pages"></div>
         </div>
       </div>
     </main>
@@ -983,66 +986,9 @@
         const total = data.movie_count || 0;
         const totalPages = Math.ceil(total / limit);
         window.currentPage = page;
-        // Botões de paginação
-        const pagination = document.getElementById('pagination-controls');
-        pagination.innerHTML = '';
-        // Primeira
-        const btnFirst = document.createElement('button');
-        btnFirst.textContent = 'Primeira';
-        btnFirst.className = 'bg-gray-700 text-white px-3 py-2 rounded-md';
-        btnFirst.disabled = page === 1;
-        btnFirst.onclick = () => {
-          window.currentPage = 1;
-          fetchMovies();
-        };
-        pagination.appendChild(btnFirst);
-        // Anterior
-        const btnPrev = document.createElement('button');
-        btnPrev.textContent = 'Anterior';
-        btnPrev.className = 'bg-gray-700 text-white px-3 py-2 rounded-md';
-        btnPrev.disabled = page === 1;
-        btnPrev.onclick = () => {
-          window.currentPage = Math.max(1, page - 1);
-          fetchMovies();
-        };
-        pagination.appendChild(btnPrev);
-        // Números
-        let start = Math.max(1, page - 3);
-        let end = Math.min(totalPages, start + 6);
-        if (end - start < 6) start = Math.max(1, end - 6);
-        for (let i = start; i <= end; i++) {
-          const btnNum = document.createElement('button');
-          btnNum.textContent = i;
-          btnNum.className = `px-3 py-2 rounded-md ${i===page ? 'bg-cyan-500 text-white font-bold' : 'bg-gray-700 text-white'}`;
-          btnNum.disabled = i === page;
-          btnNum.onclick = () => {
-            window.currentPage = i;
-            fetchMovies();
-          };
-          pagination.appendChild(btnNum);
-        }
-        // Próxima
-        const btnNext = document.createElement('button');
-        btnNext.textContent = 'Próxima';
-        btnNext.className = 'bg-gray-700 text-white px-3 py-2 rounded-md';
-        btnNext.disabled = page === totalPages;
-        btnNext.onclick = () => {
-          window.currentPage = Math.min(totalPages, page + 1);
-          fetchMovies();
-        };
-        pagination.appendChild(btnNext);
-        // Última
-        const btnLast = document.createElement('button');
-        btnLast.textContent = 'Última';
-        btnLast.className = 'bg-gray-700 text-white px-3 py-2 rounded-md';
-        btnLast.disabled = page === totalPages;
-        btnLast.onclick = () => {
-          window.currentPage = totalPages;
-          fetchMovies();
-        };
-        pagination.appendChild(btnLast);
-        // Total de páginas no canto direito
-        document.getElementById('total-pages').textContent = `Total: ${totalPages} páginas`;
+        document.getElementById('page-info').textContent = `Página ${page} de ${totalPages}`;
+        document.getElementById('prev-page').disabled = page <= 1;
+        document.getElementById('next-page').disabled = page >= totalPages;
       }
       // Eventos de filtro
       ['query_term', 'quality', 'genre', 'minimum_rating', 'sort_by', 'order_by', 'limit'].forEach(id => {
