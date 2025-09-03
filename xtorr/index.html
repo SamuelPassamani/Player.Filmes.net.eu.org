@@ -252,16 +252,13 @@
         <!-- Grid de Filmes -->
         <div id="movies-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8"></div>
         <!-- Paginação e Limite -->
-        <div class="flex justify-between items-center mb-8">
-          <div class="flex items-center gap-2">
-            <button id="prev-page" class="bg-gray-700 text-white px-4 py-2 rounded-md">Anterior</button>
-            <span id="page-info" class="text-white font-bold"></span>
-            <button id="next-page" class="bg-gray-700 text-white px-4 py-2 rounded-md">Próxima</button>
-          </div>
+        <div class="flex justify-between items-center mb-8 w-full">
           <div class="flex items-center gap-2">
             <label for="limit" class="text-white">Limite:</label>
             <input id="limit" type="number" min="1" max="50" value="50" class="bg-gray-800 border border-gray-600 rounded-md px-2 py-1 text-white w-16">
           </div>
+          <div id="pagination-controls" class="flex items-center gap-2"></div>
+          <div class="text-white font-bold" id="total-pages-info"></div>
         </div>
       </div>
     </main>
@@ -986,9 +983,44 @@
         const total = data.movie_count || 0;
         const totalPages = Math.ceil(total / limit);
         window.currentPage = page;
-        document.getElementById('page-info').textContent = `Página ${page} de ${totalPages}`;
-        document.getElementById('prev-page').disabled = page <= 1;
-        document.getElementById('next-page').disabled = page >= totalPages;
+        // Renderizar paginação centralizada
+        const pagination = document.getElementById('pagination-controls');
+        let html = '';
+        html += `<button id='first-page' class='bg-gray-700 text-white px-2 py-1 rounded-md' ${page===1?'disabled':''}>Primeira</button>`;
+        html += `<button id='prev-page' class='bg-gray-700 text-white px-2 py-1 rounded-md' ${page===1?'disabled':''}>Anterior</button>`;
+        let start = Math.max(1, page - 3);
+        let end = Math.min(totalPages, start + 6);
+        if (end - start < 6) start = Math.max(1, end - 6);
+        for (let i = start; i <= end; i++) {
+          html += `<button class='bg-gray-700 ${i===page?'bg-cyan-600':''} text-white px-2 py-1 rounded-md page-btn' data-page='${i}'>${i}</button>`;
+        }
+        html += `<button id='next-page' class='bg-gray-700 text-white px-2 py-1 rounded-md' ${page===totalPages?'disabled':''}>Próxima</button>`;
+        html += `<button id='last-page' class='bg-gray-700 text-white px-2 py-1 rounded-md' ${page===totalPages?'disabled':''}>Última</button>`;
+        pagination.innerHTML = html;
+        document.getElementById('total-pages-info').textContent = `Total: ${totalPages} páginas`;
+        // Eventos
+        document.getElementById('first-page').onclick = () => {
+          window.currentPage = 1;
+          fetchMovies();
+        };
+        document.getElementById('last-page').onclick = () => {
+          window.currentPage = totalPages;
+          fetchMovies();
+        };
+        document.getElementById('prev-page').onclick = () => {
+          window.currentPage = Math.max(1, page - 1);
+          fetchMovies();
+        };
+        document.getElementById('next-page').onclick = () => {
+          window.currentPage = Math.min(totalPages, page + 1);
+          fetchMovies();
+        };
+        document.querySelectorAll('.page-btn').forEach(btn => {
+          btn.onclick = () => {
+            window.currentPage = Number(btn.dataset.page);
+            fetchMovies();
+          };
+        });
       }
       // Eventos de filtro
       ['query_term', 'quality', 'genre', 'minimum_rating', 'sort_by', 'order_by', 'limit'].forEach(id => {
@@ -996,14 +1028,6 @@
           window.currentPage = 1;
           fetchMovies();
         });
-      });
-      document.getElementById('prev-page').addEventListener('click', () => {
-        window.currentPage = Math.max(1, (window.currentPage || 1) - 1);
-        fetchMovies();
-      });
-      document.getElementById('next-page').addEventListener('click', () => {
-        window.currentPage = (window.currentPage || 1) + 1;
-        fetchMovies();
       });
       // Inicialização
       window.currentPage = 1;
