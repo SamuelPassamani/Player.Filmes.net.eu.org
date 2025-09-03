@@ -22,7 +22,7 @@
     body {
       margin: 0;
       padding: 0;
-      overflow: hidden;
+      /* Remover overflow: hidden para permitir rolagem */
       width: 100%;
       height: 100%;
     }
@@ -100,13 +100,13 @@
         </button>
         <div id="lang-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1 z-20 border border-gray-700">
           <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700" data-lang="pt">
-            <img src="https://flagcdn.com/w40/br.png" class="w-5 h-5 object-cover mr-3 rounded-sm"> Português
+            <img src="https://flagcdn.com/w40/br.png" alt="Brazilian flag with green background, yellow diamond, blue globe with white stars and band, representing Portuguese language selection" class="w-5 h-5 object-cover mr-3 rounded-sm"> Português
           </a>
           <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700" data-lang="en">
-            <img src="https://flagcdn.com/w40/us.png" class="w-5 h-5 object-cover mr-3 rounded-sm"> English
+            <img src="https://flagcdn.com/w40/us.png" alt="United States flag with red and white stripes and blue field with white stars, representing English language selection" class="w-5 h-5 object-cover mr-3 rounded-sm"> English
           </a>
           <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700" data-lang="es">
-            <img src="https://flagcdn.com/w40/es.png" class="w-5 h-5 object-cover mr-3 rounded-sm"> Español
+            <img src="https://flagcdn.com/w40/es.png" alt="Spanish flag with red and yellow horizontal stripes and coat of arms, representing Spanish language selection" class="w-5 h-5 object-cover mr-3 rounded-sm"> Español
           </a>
         </div>
       </div>
@@ -182,64 +182,83 @@
 
       <!-- Right Column -->
       <div class="lg:col-span-2">
-        <!-- Meus Torrents Card -->
-        <div class="card rounded-lg p-6 h-full">
-          <h2 class="text-lg font-semibold text-white mb-1 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-cyan-400">
-              <path d="M4 6.51a1 1 0 0 1 .8-.4h14.4a1 1 0 0 1 .8.4L22 7M2 12h20M2 17h20" />
-              <path d="M4.5 17a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5Zm15 0a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5Zm-7.5 0a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5Z" />
+        <!-- Campo de busca isolado -->
+        <div class="flex items-center gap-2 mb-4">
+          <input id="query_term" type="text" placeholder="Buscar Título/IMDb Code, Ator/IMDb Code, Direção/IMDb Code..." class="bg-gray-800 border border-gray-600 rounded-md px-4 py-2 text-white placeholder-gray-500 w-full">
+          <button id="search-movies-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-md flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
             </svg>
-            <span data-i18n="myTorrentsTitle">Meus Torrents</span>
-          </h2>
-          <p class="text-sm text-gray-400 mb-6" data-i18n="myTorrentsDesc">Sua coleção de torrents prontos para transmitir.</p>
-
-          <div class="space-y-4">
-            <!-- Torrent Item 1 -->
-            <div class="flex items-center justify-between p-3 bg-gray-800 rounded-md">
-              <div class="truncate">
-                <p class="text-white truncate">d4c14d57570bba62526c452b8c22452978389606</p>
-                <p class="text-xs text-gray-500 truncate">d4c14d57570bba62526c452b8c22452978389606</p>
-              </div>
-              <div class="flex items-center space-x-3 flex-shrink-0 ml-4">
-                <button class="flex items-center space-x-2 text-sm px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-cyan-400 rounded-md transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
-                    <polygon points="5 3 19 12 5 21 5 3" />
-                  </svg>
-                  <span data-i18n="streamBtn">Transmitir</span>
-                </button>
-                <button class="p-1.5 text-gray-400 hover:text-red-400 rounded-md transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
-                    <path d="M3 6h18" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <!-- Torrent Item 2 -->
-            <div class="flex items-center justify-between p-3 bg-gray-800 rounded-md">
-              <div class="truncate">
-                <p class="text-white truncate">Back To Black [2024] [720p] [BluRay] [YTS.MX]</p>
-                <p class="text-xs text-gray-500 truncate">9da7ca2d578b13b91261412a01da9be2b4a35cce3</p>
-              </div>
-              <div class="flex items-center space-x-3 flex-shrink-0 ml-4">
-                <button class="flex items-center space-x-2 text-sm px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-cyan-400 rounded-md transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
-                    <polygon points="5 3 19 12 5 21 5 3" />
-                  </svg>
-                  <span data-i18n="streamBtn2">Transmitir</span>
-                </button>
-                <button class="p-1.5 text-gray-400 hover:text-red-400 rounded-md transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
-                    <path d="M3 6h18" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                  </svg>
-                </button>
-              </div>
-            </div>
+          </button>
+        </div>
+        <!-- Filtros de Busca -->
+        <div class="grid grid-cols-5 gap-4 mb-6 w-full">
+          <select id="quality" class="bg-gray-800 border border-gray-600 rounded-md px-4 py-2 text-white w-full">
+            <option value="">Qualidade</option>
+            <option value="480p">480p</option>
+            <option value="720p">720p</option>
+            <option value="1080p">1080p</option>
+            <option value="1080p.x265">1080p.x265</option>
+            <option value="2160p">2160p</option>
+            <option value="3D">3D</option>
+          </select>
+          <select id="genre" class="bg-gray-800 border border-gray-600 rounded-md px-4 py-2 text-white w-full">
+            <option value="">Gênero</option>
+            <option value="action">Ação</option>
+            <option value="comedy">Comédia</option>
+            <option value="drama">Drama</option>
+            <option value="horror">Terror</option>
+            <option value="romance">Romance</option>
+            <option value="sci-fi">Sci-Fi</option>
+            <option value="animation">Animação</option>
+            <option value="documentary">Documentário</option>
+            <option value="adventure">Aventura</option>
+            <option value="crime">Crime</option>
+            <option value="thriller">Thriller</option>
+            <option value="fantasy">Fantasia</option>
+            <option value="mystery">Mistério</option>
+            <option value="music">Música</option>
+            <option value="family">Família</option>
+            <option value="war">Guerra</option>
+            <option value="western">Western</option>
+          </select>
+          <select id="minimum_rating" class="bg-gray-800 border border-gray-600 rounded-md px-4 py-2 text-white w-full">
+            <option value="">Nota mínima</option>
+            <option value="9">9+</option>
+            <option value="8">8+</option>
+            <option value="7">7+</option>
+            <option value="6">6+</option>
+            <option value="5">5+</option>
+            <option value="4">4+</option>
+            <option value="3">3+</option>
+            <option value="2">2+</option>
+            <option value="1">1+</option>
+          </select>
+          <select id="sort_by" class="bg-gray-800 border border-gray-600 rounded-md px-4 py-2 text-white w-full">
+            <option value="">Ordenar por</option>
+            <option value="title">Título</option>
+            <option value="year">Ano</option>
+            <option value="rating">Nota</option>
+            <option value="download_count">Downloads</option>
+            <option value="like_count">Likes</option>
+            <option value="date_added">Data Adicionada</option>
+          </select>
+          <select id="order_by" class="bg-gray-800 border border-gray-600 rounded-md px-4 py-2 text-white w-full">
+            <option value="desc">Descendente</option>
+            <option value="asc">Ascendente</option>
+          </select>
+        </div>
+        <!-- Grid de Filmes -->
+        <div id="movies-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8"></div>
+        <!-- Paginação e Limite -->
+        <div class="flex justify-between items-center mb-8 w-full">
+          <div class="flex items-center gap-2">
+            <label for="limit" class="text-white">Limite:</label>
+            <input id="limit" type="number" min="1" max="50" value="50" class="bg-gray-800 border border-gray-600 rounded-md px-2 py-1 text-white w-16">
           </div>
+          <div id="pagination-controls" class="flex items-center gap-2"></div>
+          <div class="text-white font-bold" id="total-pages"></div>
         </div>
       </div>
     </main>
@@ -897,6 +916,153 @@
           behavior: 'smooth'
         });
       });
+      // Função para montar URL da API e atualizar a URL do app
+      function getFilters() {
+        return {
+          query_term: document.getElementById('query_term').value.trim(),
+          quality: document.getElementById('quality').value,
+          genre: document.getElementById('genre').value,
+          minimum_rating: document.getElementById('minimum_rating').value,
+          sort_by: document.getElementById('sort_by').value,
+          order_by: document.getElementById('order_by').value,
+          limit: document.getElementById('limit').value,
+          page: window.currentPage || 1
+        };
+      }
+
+      function buildApiUrl() {
+        const base = 'https://yts.mx/api/v2/list_movies.json';
+        const filters = getFilters();
+        const params = Object.entries(filters).filter(([k, v]) => v).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+        return `${base}?${params}`;
+      }
+
+      function updateAppUrl() {
+        const filters = getFilters();
+        const params = Object.entries(filters).filter(([k, v]) => v).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+        window.history.replaceState({}, '', `?${params}`);
+      }
+      let firstLoad = true;
+      async function fetchMovies() {
+        const url = buildApiUrl();
+        if (!firstLoad) updateAppUrl();
+        document.getElementById('movies-grid').innerHTML = '<div class="text-center text-white p-8">Carregando...</div>';
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          renderMovies(data.data.movies || []);
+          renderPagination(data.data);
+        } catch (e) {
+          document.getElementById('movies-grid').innerHTML = '<div class="text-center text-red-400 p-8">Erro ao buscar filmes.</div>';
+        }
+        firstLoad = false;
+      }
+
+      function renderMovies(movies) {
+        const grid = document.getElementById('movies-grid');
+        if (!movies.length) {
+          grid.innerHTML = '<div class="text-center text-white p-8">Nenhum filme encontrado.</div>';
+          return;
+        }
+        grid.innerHTML = movies.map(movie => `
+    <div class="bg-gray-900 rounded-lg overflow-hidden shadow-lg flex flex-col">
+      <img src="${movie.medium_cover_image}" alt="${movie.title}" class="w-full h-64 object-cover">
+      <div class="p-4 flex-1 flex flex-col">
+        <h3 class="text-lg font-bold text-white mb-2">${movie.title}</h3>
+        <p class="text-sm text-gray-400 mb-2">${movie.year} &middot; ${movie.rating} &middot; ${movie.genres?.join(', ') || ''}</p>
+        <p class="text-xs text-gray-500 mb-2 line-clamp-3">${movie.summary || ''}</p>
+        <button class="mt-auto bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-md" onclick="playTorrent('${movie.torrents[0]?.hash}','video-container')">Transmitir</button>
+      </div>
+    </div>
+  `).join('');
+      }
+
+      function renderPagination(data) {
+        const page = data.page_number || 1;
+        const limit = data.limit || 20;
+        const total = data.movie_count || 0;
+        const totalPages = Math.ceil(total / limit);
+        window.currentPage = page;
+        // Botões de paginação
+        const pagination = document.getElementById('pagination-controls');
+        pagination.innerHTML = '';
+        // Primeira
+        const btnFirst = document.createElement('button');
+        btnFirst.textContent = 'Primeira';
+        btnFirst.className = 'bg-gray-700 text-white px-3 py-2 rounded-md';
+        btnFirst.disabled = page === 1;
+        btnFirst.onclick = () => {
+          window.currentPage = 1;
+          fetchMovies();
+        };
+        pagination.appendChild(btnFirst);
+        // Anterior
+        const btnPrev = document.createElement('button');
+        btnPrev.textContent = 'Anterior';
+        btnPrev.className = 'bg-gray-700 text-white px-3 py-2 rounded-md';
+        btnPrev.disabled = page === 1;
+        btnPrev.onclick = () => {
+          window.currentPage = Math.max(1, page - 1);
+          fetchMovies();
+        };
+        pagination.appendChild(btnPrev);
+        // Números
+        let start = Math.max(1, page - 3);
+        let end = Math.min(totalPages, start + 6);
+        if (end - start < 6) start = Math.max(1, end - 6);
+        for (let i = start; i <= end; i++) {
+          const btnNum = document.createElement('button');
+          btnNum.textContent = i;
+          btnNum.className = `px-3 py-2 rounded-md ${i===page ? 'bg-cyan-500 text-white font-bold' : 'bg-gray-700 text-white'}`;
+          btnNum.disabled = i === page;
+          btnNum.onclick = () => {
+            window.currentPage = i;
+            fetchMovies();
+          };
+          pagination.appendChild(btnNum);
+        }
+        // Próxima
+        const btnNext = document.createElement('button');
+        btnNext.textContent = 'Próxima';
+        btnNext.className = 'bg-gray-700 text-white px-3 py-2 rounded-md';
+        btnNext.disabled = page === totalPages;
+        btnNext.onclick = () => {
+          window.currentPage = Math.min(totalPages, page + 1);
+          fetchMovies();
+        };
+        pagination.appendChild(btnNext);
+        // Última
+        const btnLast = document.createElement('button');
+        btnLast.textContent = 'Última';
+        btnLast.className = 'bg-gray-700 text-white px-3 py-2 rounded-md';
+        btnLast.disabled = page === totalPages;
+        btnLast.onclick = () => {
+          window.currentPage = totalPages;
+          fetchMovies();
+        };
+        pagination.appendChild(btnLast);
+        // Total de páginas no canto direito
+        document.getElementById('total-pages').textContent = `Total: ${totalPages} páginas`;
+      }
+      // Eventos de filtro
+      ['query_term', 'quality', 'genre', 'minimum_rating', 'sort_by', 'order_by', 'limit'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => {
+          window.currentPage = 1;
+          fetchMovies();
+        });
+      });
+      document.getElementById('prev-page').addEventListener('click', () => {
+        window.currentPage = Math.max(1, (window.currentPage || 1) - 1);
+        fetchMovies();
+      });
+      document.getElementById('next-page').addEventListener('click', () => {
+        window.currentPage = (window.currentPage || 1) + 1;
+        fetchMovies();
+      });
+      // Inicialização
+      window.currentPage = 1;
+      document.getElementById('limit').value = 16;
+      fetchMovies();
       // Set initial language
       setLanguage(getInitialLang());
     });
