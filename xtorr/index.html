@@ -7,7 +7,7 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- WebTorrent CDN -->
-    <script src="./webtorrent.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"></script>
     <!-- Moment.js for human-readable time -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/locale/pt-br.js"></script>
@@ -276,16 +276,47 @@
         </div>
     </div>
 
+    <video id="video-player" controls style="width:100%;max-width:900px;margin:32px auto;display:block;background:#000;"></video>
+<script>
+const client = new WebTorrent();
+const magnetURI = 'magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&dn=Sintel';
+const player = document.getElementById('video-player');
 
+function download() {
+  client.add(magnetURI, torrent => {
+    const file = torrent.files.find(f => f.name.endsWith('.mp4') || f.name.endsWith('.mkv') || f.name.endsWith('.webm'));
+    if (file) {
+      const url = file.streamURL;
+      console.log('[WebTorrent] streamURL:', url);
+      player.src = url;
+      player.play();
+    } else {
+      console.warn('[WebTorrent] Nenhum arquivo de vídeo encontrado no torrent.');
+    }
+    // Para ver todos os torrents: <origin>/webtorrent/
+    // Para acessar individualmente: /webtorrent/<infoHash>
+  });
+}
+
+navigator.serviceWorker.register('./sw.min.js', { scope: './' }).then(reg => {
+  const worker = reg.active || reg.waiting || reg.installing;
+  function checkState(worker) {
+    if (worker.state === 'activated') {
+      download();
+      return true;
+    }
+    return false;
+  }
+  if (!checkState(worker)) {
+    worker.addEventListener('statechange', ({ target }) => checkState(target));
+  }
+});
+
+// Para cleanup posterior:
+// client._server.close();
+// client.destroy();
+</script>
     <script>
-        let serviceWorkerReg = null;
-        navigator.serviceWorker.register('./sw.min.js', { scope: './' }).then(reg => {
-            console.log('Service Worker registrado:', reg);
-            serviceWorkerReg = reg;
-        }).catch(err => {
-            console.error('Erro ao registrar Service Worker:', err);
-        });
-
         document.addEventListener('DOMContentLoaded', () => {
             // --- Configurações e Variaveis Globais ---
             const globalConfig = {
@@ -379,21 +410,44 @@
             }
 
             const playTorrent = (hash, containerId) => {
-                if (!serviceWorkerReg) {
-                    alert('Service Worker não está pronto. Tente novamente em alguns segundos.');
-                    return;
-                }
+                console.log('[WebTorrent] Iniciando processamento do torrent:', hash);
                 destroyPlayer();
-                const client = WebTorrent.createServer({ controller: serviceWorkerReg });
-
+                webTorrentClient = new WebTorrent();
                 let magnetLink = `magnet:?xt=urn:btih:${hash}&dn=${encodeURIComponent(hash)}`;
                 const allTrackers = [...globalConfig.trackers.udp, ...globalConfig.trackers.http, ...globalConfig.trackers.ws];
                 allTrackers.forEach(tracker => { magnetLink += `&tr=${encodeURIComponent(tracker)}`; });
                 console.log('[WebTorrent] Magnet link construído:', magnetLink);
 
-                client.add(magnetLink, torrent => {
-                    console.log('[WebTorrent] Torrent adicionado, procurando arquivo de vídeo...');
-                    const file = torrent.files.find(f => f.name.endsWith('.mp4') || f.name.endsWith('.mkv') || f.name.endsWith('.webm'));
+                const container = document.getElementById(containerId);
+                container.innerHTML = `
+                    <div id="torrent-status" class="w-full h-full flex flex-col justify-center items-center text-white p-4">
+                        <p id="status-message" class="text-lg mb-4">${translations[currentLang].connectingToPeers}</p>
+                        <div class="w-full max-w-md bg-gray-700 rounded-full h-2.5 mb-2">
+                            <div id="progress-bar" class="bg-cyan-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                        <div class="w-full max-w-md flex justify-between text-xs text-gray-400 mb-4">
+                            <span><span id="downloaded-amount">0 B</span> / <span id="total-amount">...</span></span>
+                            <span id="time-remaining">--:--</span>
+                        </div>
+                        <div class="w-full max-w-md grid grid-cols-3 gap-4 text-center text-sm">
+                            <div>
+                                <div class="font-bold text-cyan-400" id="download-speed">↓ 0 B/s</div>
+                                <div class="text-xs text-gray-500" data-i18n="downloading">${translations[currentLang].downloading}</div>
+                            </div>
+                             <div>
+                                <div class="font-bold text-green-400" id="upload-speed">↑ 0 B/s</div>
+                                <div class="text-xs text-gray-500" data-i18n="uploadSpeed">${translations[currentLang].uploadSpeed}</div>
+                            </div>
+                            <div>
+                                <div class="font-bold text-yellow-400" id="peer-count">0</div>
+                                <div class="text-xs text-gray-500" data-i18n="peers">${translations[currentLang].peers}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                webTorrentClient.add(magnetLink, (torrent) => {
+                    console.log('[WebTorrent] Torrent adicionado, aguardando metadados...');
+                    const file = torrent.files.find(file => file.name.endsWith('.mp4') || file.name.endsWith('.mkv') || file.name.endsWith('.webm'));
                     if (!file) {
                         console.warn('[WebTorrent] Nenhum arquivo de vídeo compatível encontrado no torrent.');
                         document.querySelector('#status-message').textContent = translations[currentLang].noVideoFile;
@@ -402,23 +456,58 @@
                     }
                     console.log('[WebTorrent] Arquivo de vídeo encontrado:', file.name);
 
-                    videoModal.classList.remove('hidden');
-                    const container = document.getElementById(containerId);
-                    container.innerHTML = `<video id="native-video" controls style="width:100%;height:80vh;background:#000;"></video>`;
-                    const video = document.getElementById('native-video');
-                    video.src = file.streamURL;
-                    video.play();
+                    const updateStatus = () => {
+                        const statusContainer = document.getElementById('torrent-status');
+                        if (!statusContainer) {
+                             if(statusInterval) clearInterval(statusInterval);
+                             return;
+                        }
+                        const percent = (torrent.progress * 100).toFixed(1);
+                        statusContainer.querySelector('#progress-bar').style.width = `${percent}%`;
+                        statusContainer.querySelector('#downloaded-amount').textContent = prettyBytes(torrent.downloaded);
+                        statusContainer.querySelector('#total-amount').textContent = prettyBytes(torrent.length);
+                        statusContainer.querySelector('#download-speed').textContent = `↓ ${prettyBytes(torrent.downloadSpeed)}/s`;
+                        statusContainer.querySelector('#upload-speed').textContent = `↑ ${prettyBytes(torrent.uploadSpeed)}/s`;
+                        statusContainer.querySelector('#peer-count').textContent = torrent.numPeers;
+                        let remaining = '';
+                        if (torrent.done) {
+                            remaining = translations[currentLang].done;
+                        } else if (torrent.timeRemaining === Infinity) {
+                            remaining = '∞';
+                        }
+                        else {
+                            remaining = moment.duration(torrent.timeRemaining / 1000, 'seconds').humanize();
+                            remaining = remaining.charAt(0).toUpperCase() + remaining.slice(1) + ' ' + translations[currentLang].remainingTime;
+                        }
+                        statusContainer.querySelector('#time-remaining').textContent = remaining;
+                        if (torrent.progress < 1) {
+                            statusContainer.querySelector('#status-message').textContent = `${translations[currentLang].downloading} - ${percent}%`;
+                        }
+                    }
+                    torrent.on('ready', () => {
+                        console.log('[WebTorrent] Metadados prontos, iniciando renderização do player...');
+                        videoModal.classList.remove('hidden');
+                        container.innerHTML = '';
+                        file.appendTo(container, { controls: true });
+                        if(statusInterval) clearInterval(statusInterval);
+                    });
+                    torrent.on('done', () => {
+                        console.log('[WebTorrent] Download do torrent concluído!');
+                        const statusContainer = document.getElementById('torrent-status');
+                        if (statusContainer) {
+                           statusContainer.querySelector('#status-message').textContent = translations[currentLang].seeding;
+                           updateStatus(); 
+                        }
+                        if(statusInterval) clearInterval(statusInterval);
+                        statusInterval = null;
+                    });
+                    statusInterval = setInterval(updateStatus, 500);
+                    console.log('[WebTorrent] Download iniciado...');
                 });
-
-                client.on('error', err => {
+                webTorrentClient.on('error', (err) => {
                     console.error('[WebTorrent] Erro:', err);
                     container.innerHTML = `<div class="text-red-400 text-center p-4">${translations[currentLang].torrentError}</div>`;
                     destroyPlayer();
-                });
-
-                closeModalBtn.addEventListener('click', () => {
-                    if (client._server) client._server.close();
-                    client.destroy();
                 });
             };
 
