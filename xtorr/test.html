@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stream de Torrent Aprimorado</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/video.js/7.8.1/video-js.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/7.8.1/video.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/7.8.1/video.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -58,70 +58,99 @@
 </div>
 
 <script type='module'>
-    document.getElementById('start-stream').addEventListener('click', () => {
-        const magnetLink = document.getElementById('magnet-link').value;
+    // Importa o cliente WebTorrent usando ES modules
+    import WebTorrent from 'https://esm.sh/webtorrent'
+    
+    let client;
+    let serviceWorkerReady = false;
+
+    // Função para iniciar o download e streaming
+    function downloadAndStream(magnetLink) {
         const statusMessage = document.getElementById('status-message');
         const videoPlayerElement = document.getElementById('video-player');
-
-        if (!magnetLink) {
-            statusMessage.textContent = 'Por favor, insira um link magnet válido.';
-            return;
-        }
 
         statusMessage.textContent = 'Iniciando download do torrent...';
         videoPlayerElement.style.display = 'none';
 
-        const client = new WebTorrent();
-
-        client.on('error', (err) => {
-            console.error('Erro no WebTorrent:', err);
-            statusMessage.textContent = `Erro: ${err.message}`;
-        });
+        if (!client) {
+            client = new WebTorrent();
+            client.on('error', (err) => {
+                console.error('Erro no WebTorrent:', err);
+                statusMessage.textContent = `Erro: ${err.message}`;
+            });
+        }
         
-        function downloadAndStream() {
-            client.add(magnetLink, (torrent) => {
-                statusMessage.textContent = 'Metadados obtidos. Preparando para streaming...';
-                console.log('Torrent obtido:', torrent);
-    
-                const file = torrent.files.find(file => file.name.endsWith('.mp4') || file.name.endsWith('.webm'));
-    
-                if (file) {
-                    videoPlayerElement.style.display = 'block';
-                    file.streamTo(videoPlayerElement);
-                    
-                    statusMessage.textContent = 'Reprodução iniciada.';
-                    console.log('Pronto para reproduzir!');
-                } else {
-                    statusMessage.textContent = 'Nenhum arquivo de vídeo compatível (.mp4, .webm) encontrado no torrent.';
-                    console.log('Arquivos no torrent:', torrent.files.map(f => f.name));
-                }
+        client.add(magnetLink, (torrent) => {
+            statusMessage.textContent = 'Metadados obtidos. Preparando para streaming...';
+            console.log('Torrent obtido:', torrent);
+            
+            const file = torrent.files.find(file => file.name.endsWith('.mp4') || file.name.endsWith('.webm'));
+            
+            if (file) {
+                videoPlayerElement.style.display = 'block';
+                // O método streamTo é a maneira correta de conectar o arquivo ao player
+                file.streamTo(videoPlayerElement);
                 
-                torrent.on('download', () => {
-                    const progress = (torrent.progress * 100).toFixed(1);
-                    statusMessage.textContent = `Baixando: ${progress}% - Velocidade: ${(torrent.downloadSpeed / 1024 / 1024).toFixed(2)} MB/s`;
-                });
+                statusMessage.textContent = 'Reprodução iniciada.';
+                console.log('Pronto para reproduzir!');
+            } else {
+                statusMessage.textContent = 'Nenhum arquivo de vídeo compatível (.mp4, .webm) encontrado no torrent.';
+                console.log('Arquivos no torrent:', torrent.files.map(f => f.name));
+            }
+            
+            torrent.on('download', () => {
+                const progress = (torrent.progress * 100).toFixed(1);
+                statusMessage.textContent = `Baixando: ${progress}% - Velocidade: ${(torrent.downloadSpeed / 1024 / 1024).toFixed(2)} MB/s`;
             });
-        }
+        });
+    }
 
-        // Registro do Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.min.js', { scope: './' }).then(reg => {
-                const worker = reg.active || reg.waiting || reg.installing;
-                function checkState (worker) {
-                    return worker.state === 'activated' && client.createServer({ controller: reg }) && downloadAndStream();
+    // Registra o Service Worker e prepara a aplicação
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.min.js', { scope: './' }).then(reg => {
+            console.log('Service Worker registrado com sucesso:', reg);
+            serviceWorkerReady = true;
+
+            // O `client` do WebTorrent deve ser criado após o Service Worker ser registrado e ativado.
+            client = new WebTorrent({ serviceWorker: true });
+
+            // Adiciona um listener para o botão "Iniciar Stream"
+            document.getElementById('start-stream').addEventListener('click', () => {
+                const magnetLink = document.getElementById('magnet-link').value;
+                if (magnetLink) {
+                    downloadAndStream(magnetLink);
+                } else {
+                    document.getElementById('status-message').textContent = 'Por favor, insira um link magnet válido.';
                 }
-                if (!checkState(worker)) {
-                    worker.addEventListener('statechange', ({ target }) => checkState(target));
-                }
-            }).catch(error => {
-                console.error('Falha ao registrar o Service Worker:', error);
-                statusMessage.textContent = `Erro: Falha ao registrar Service Worker - ${error.message}`;
             });
-        } else {
-            console.warn('Service Workers não são suportados neste navegador. Tentando streaming sem otimizações.');
-            downloadAndStream();
-        }
-    });
+            
+        }).catch(error => {
+            console.error('Falha ao registrar o Service Worker:', error);
+            document.getElementById('status-message').textContent = 'Erro: Falha ao registrar Service Worker. Tentando streaming sem otimizações.';
+            // Se o Service Worker falhar, o cliente será criado e o download tentado diretamente, mas sem otimização.
+            client = new WebTorrent();
+            document.getElementById('start-stream').addEventListener('click', () => {
+                const magnetLink = document.getElementById('magnet-link').value;
+                if (magnetLink) {
+                    downloadAndStream(magnetLink);
+                } else {
+                    document.getElementById('status-message').textContent = 'Por favor, insira um link magnet válido.';
+                }
+            });
+        });
+    } else {
+        console.warn('Service Workers não são suportados neste navegador. Tentando streaming sem otimizações.');
+        // Se o navegador não suportar Service Workers, o cliente será criado diretamente.
+        client = new WebTorrent();
+        document.getElementById('start-stream').addEventListener('click', () => {
+            const magnetLink = document.getElementById('magnet-link').value;
+            if (magnetLink) {
+                downloadAndStream(magnetLink);
+            } else {
+                document.getElementById('status-message').textContent = 'Por favor, insira um link magnet válido.';
+            }
+        });
+    }
 </script>
 
 </body>
