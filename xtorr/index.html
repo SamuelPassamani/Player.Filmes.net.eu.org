@@ -366,11 +366,13 @@
       client.add(magnetURI, torrent => {
         const file = torrent.files.find(f => f.name.endsWith('.mp4') || f.name.endsWith('.mkv') || f.name.endsWith('.webm'));
         if (file) {
-          const url = file.streamURL;
-          console.log('[WebTorrent] streamURL:', url);
-          player.src = url;
-          player.play();
-        } else {
+  const url = file.streamURL;
+  console.log('[WebTorrent] Arquivo de vídeo encontrado:', file.name);
+  console.log('[WebTorrent] Caminho completo dentro do torrent:', file.path);
+  console.log('[WebTorrent] streamURL (para o player):', url);
+  player.src = url;
+  player.play();
+} else {
           console.warn('[WebTorrent] Nenhum arquivo de vídeo encontrado no torrent.');
         }
       });
