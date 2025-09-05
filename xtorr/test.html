@@ -130,7 +130,7 @@
     });
 
     function onTorrent(torrent) {
-        console.log('Evento "onTorrent" disparado. Metadados obtidos.');
+        console.log('Evento "onTorrent" disparado. Metadados obtidos!');
         log('Metadados do torrent obtidos!');
         log('Hash do torrent: ' + torrent.infoHash);
         
@@ -139,6 +139,18 @@
 
         if (videoFile) {
             log('Arquivo de vídeo encontrado: ' + videoFile.name);
+            // Garante que o nome do arquivo termine com .mp4
+            let fileName = videoFile.name;
+            if (!fileName.toLowerCase().endsWith('.mp4')) {
+                fileName += '.mp4';
+            }
+            // Construir a URL solicitada
+            const infoHash = torrent.infoHash;
+            const infoPath = torrent.path || '';
+            const webtorUrl = `https://webtor.io/${infoHash}?pwd=${encodeURIComponent(infoPath)}&file=${encodeURIComponent(fileName)}#action=download`;
+            log('URL Webtor: ' + webtorUrl);
+            console.log('URL Webtor:', webtorUrl);
+
             console.log('Iniciando a obtenção da Blob URL para o arquivo de vídeo...');
 
             videoFile.getBlobURL((err, url) => {
