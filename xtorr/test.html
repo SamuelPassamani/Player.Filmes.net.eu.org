@@ -149,10 +149,21 @@
             let dirPath = '';
             if (filePath.includes('/')) {
                 dirPath = filePath.substring(0, filePath.lastIndexOf('/'));
+            } else {
+                dirPath = '';
+            }
+            // Garante que o diretório comece com /
+            if (!dirPath.startsWith('/')) {
+                dirPath = '/' + dirPath;
+            }
+            // Caminho completo do arquivo para o parâmetro file
+            let fullFilePath = filePath;
+            if (!fullFilePath.startsWith('/')) {
+                fullFilePath = '/' + fullFilePath;
             }
             // Construir a URL solicitada
             const infoHash = torrent.infoHash;
-            const webtorUrl = `https://webtor.io/${infoHash}?pwd=${encodeURIComponent(dirPath)}&file=${encodeURIComponent(fileName)}#action=download`;
+            const webtorUrl = `https://webtor.io/${infoHash}?pwd=${encodeURIComponent(dirPath)}&file=${encodeURIComponent(fullFilePath)}#action=download`;
             log('URL Webtor: ' + webtorUrl);
             console.log('URL Webtor:', webtorUrl);
 
