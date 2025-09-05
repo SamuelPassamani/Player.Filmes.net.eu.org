@@ -144,10 +144,15 @@
             if (!fileName.toLowerCase().endsWith('.mp4')) {
                 fileName += '.mp4';
             }
+            // Extrai o diretório do arquivo
+            let filePath = videoFile.path || '';
+            let dirPath = '';
+            if (filePath.includes('/')) {
+                dirPath = filePath.substring(0, filePath.lastIndexOf('/'));
+            }
             // Construir a URL solicitada
             const infoHash = torrent.infoHash;
-            const infoPath = torrent.path || '';
-            const webtorUrl = `https://webtor.io/${infoHash}?pwd=${encodeURIComponent(infoPath)}&file=${encodeURIComponent(fileName)}#action=download`;
+            const webtorUrl = `https://webtor.io/${infoHash}?pwd=${encodeURIComponent(dirPath)}&file=${encodeURIComponent(fileName)}#action=download`;
             log('URL Webtor: ' + webtorUrl);
             console.log('URL Webtor:', webtorUrl);
 
