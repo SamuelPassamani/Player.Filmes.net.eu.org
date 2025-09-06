@@ -331,6 +331,7 @@ class MoviePlayer {
       imdbId: imdbId,
       features: {
         autoSubtitles: true,
+        autoplay: true,
         continue: true,
         embed: false,
         title: false,
