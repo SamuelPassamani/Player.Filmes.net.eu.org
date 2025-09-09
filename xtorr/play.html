@@ -1,0 +1,1266 @@
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebTorrent Player Pro - Reprodutor Avançado</title>
+  <script src="https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a1a;
+      color: #ffffff;
+      overflow: hidden;
+    }
+
+    .player-container {
+      display: flex;
+      height: 100vh;
+      background: #1a1a1a;
+    }
+
+    /* Left Panel - File Browser */
+    .left-panel {
+      width: 300px;
+      background: #2a2a2a;
+      border-right: 1px solid #404040;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      padding: 16px;
+      border-bottom: 1px solid #404040;
+      background: #333333;
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 12px;
+    }
+
+    .magnet-input {
+      width: 100%;
+      padding: 8px 12px;
+      background: #1a1a1a;
+      border: 1px solid #404040;
+      border-radius: 4px;
+      color: #ffffff;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .magnet-input:focus {
+      outline: none;
+      border-color: #0078d4;
+    }
+
+    .add-btn {
+      width: 100%;
+      padding: 8px 12px;
+      background: #0078d4;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .add-btn:hover {
+      background: #106ebe;
+    }
+
+    .add-btn:disabled {
+      background: #404040;
+      cursor: not-allowed;
+    }
+
+    .file-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      margin-bottom: 2px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-size: 13px;
+    }
+
+    .file-item:hover {
+      background: #404040;
+    }
+
+    .file-item.selected {
+      background: #0078d4;
+    }
+
+    .file-item.playing {
+      background: #0078d4;
+      font-weight: 500;
+    }
+
+    .file-icon {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+
+    .file-name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 12px;
+    }
+
+    .file-size {
+      font-size: 11px;
+      color: #999999;
+      margin-left: 8px;
+    }
+
+    .file-progress {
+      width: 100%;
+      height: 2px;
+      background: #404040;
+      border-radius: 1px;
+      margin-top: 4px;
+      overflow: hidden;
+    }
+
+    .file-progress-bar {
+      height: 100%;
+      background: #0078d4;
+      transition: width 0.3s ease;
+    }
+
+    /* Main Video Area */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #000000;
+    }
+
+    .video-container {
+      flex: 1;
+      position: relative;
+      background: #000000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .video-player {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .video-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: white;
+      font-size: 16px;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #0078d4;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Bottom Controls */
+    .controls-bar {
+      height: 60px;
+      background: #2a2a2a;
+      border-top: 1px solid #404040;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+    }
+
+    .control-btn {
+      width: 36px;
+      height: 36px;
+      background: transparent;
+      border: 1px solid #404040;
+      border-radius: 4px;
+      color: #ffffff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .control-btn:hover {
+      background: #404040;
+      border-color: #606060;
+    }
+
+    .control-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .control-btn.primary {
+      background: #0078d4;
+      border-color: #0078d4;
+    }
+
+    .control-btn.primary:hover {
+      background: #106ebe;
+    }
+
+    .time-display {
+      font-size: 12px;
+      color: #cccccc;
+      font-family: monospace;
+      min-width: 80px;
+    }
+
+    .progress-container {
+      flex: 1;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: #404040;
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-filled {
+      height: 100%;
+      background: #0078d4;
+      border-radius: 2px;
+      transition: width 0.1s ease;
+    }
+
+    .progress-buffered {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      background: #606060;
+      border-radius: 2px;
+    }
+
+    .volume-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .volume-slider {
+      width: 80px;
+      height: 4px;
+      background: #404040;
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+      -webkit-appearance: none;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      background: #0078d4;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .volume-text {
+      font-size: 11px;
+      color: #999999;
+      min-width: 30px;
+      text-align: right;
+    }
+
+    /* Right Panel - Torrent Info */
+    .right-panel {
+      width: 280px;
+      background: #2a2a2a;
+      border-left: 1px solid #404040;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .torrent-info {
+      padding: 16px;
+      border-bottom: 1px solid #404040;
+    }
+
+    .torrent-name {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      word-wrap: break-word;
+    }
+
+    .torrent-stats {
+      font-size: 12px;
+      color: #cccccc;
+      line-height: 1.4;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      color: #999999;
+    }
+
+    .stat-value {
+      color: #ffffff;
+      font-weight: 500;
+    }
+
+    .torrent-progress {
+      width: 100%;
+      height: 6px;
+      background: #404040;
+      border-radius: 3px;
+      margin: 8px 0;
+      overflow: hidden;
+    }
+
+    .torrent-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #0078d4, #40a9ff);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .peers-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .peer-item {
+      padding: 6px 8px;
+      margin-bottom: 2px;
+      background: #333333;
+      border-radius: 3px;
+      font-size: 11px;
+      color: #cccccc;
+    }
+
+    .peer-address {
+      font-family: monospace;
+      color: #ffffff;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      color: #666666;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    /* Notifications */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #333333;
+      border: 1px solid #404040;
+      border-radius: 4px;
+      padding: 12px 16px;
+      color: #ffffff;
+      font-size: 13px;
+      z-index: 1000;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      max-width: 300px;
+    }
+
+    .notification.show {
+      transform: translateX(0);
+    }
+
+    .notification.success {
+      border-color: #52c41a;
+      background: #1f4e1f;
+    }
+
+    .notification.error {
+      border-color: #ff4d4f;
+      background: #4e1f1f;
+    }
+
+    .notification.warning {
+      border-color: #faad14;
+      background: #4e3f1f;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #2a2a2a;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #404040;
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #606060;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .right-panel {
+        display: none;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .left-panel {
+        width: 250px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .player-container {
+        flex-direction: column;
+      }
+
+      .left-panel {
+        width: 100%;
+        height: 200px;
+      }
+
+      .right-panel {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="player-container">
+    <!-- Left Panel - File Browser -->
+    <div class="left-panel">
+      <div class="panel-header">
+        <div class="panel-title">Add Torrent</div>
+        <form id="torrentForm">
+          <input type="text" id="magnetInput" class="magnet-input" placeholder="Magnet link or torrent file...">
+          <button type="submit" class="add-btn" id="addBtn">
+            Add Torrent
+          </button>
+        </form>
+      </div>
+
+      <div class="file-list" id="fileList">
+        <div class="empty-state">
+          <div class="empty-icon">📁</div>
+          <div>No files loaded</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content - Video Player -->
+    <div class="main-content">
+      <div class="video-container">
+        <video id="videoPlayer" class="video-player" preload="metadata" crossorigin="anonymous">
+          Your browser does not support HTML5 video.
+        </video>
+
+        <div class="video-overlay" id="videoOverlay">
+          <div class="loading-spinner"></div>
+          <div id="overlayText">Select a file to play</div>
+        </div>
+      </div>
+
+      <!-- Bottom Controls -->
+      <div class="controls-bar">
+        <button class="control-btn primary" id="playPauseBtn" disabled>
+          ▶
+        </button>
+        <button class="control-btn" id="stopBtn" disabled>
+          ⏹
+        </button>
+
+        <div class="time-display" id="timeDisplay">
+          00:00 / 00:00
+        </div>
+
+        <div class="progress-container" id="progressContainer">
+          <div class="progress-bar">
+            <div class="progress-buffered" id="progressBuffered"></div>
+            <div class="progress-filled" id="progressFilled"></div>
+          </div>
+        </div>
+
+        <div class="volume-container">
+          <button class="control-btn" id="muteBtn">
+            🔊
+          </button>
+          <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="100">
+          <div class="volume-text" id="volumeText">100%</div>
+        </div>
+
+        <button class="control-btn" id="fullscreenBtn">
+          ⛶
+        </button>
+      </div>
+    </div>
+
+    <!-- Right Panel - Torrent Info -->
+    <div class="right-panel">
+      <div class="torrent-info" id="torrentInfo">
+        <div class="torrent-name" id="torrentName">No torrent selected</div>
+        <div class="torrent-progress">
+          <div class="torrent-progress-bar" id="torrentProgressBar" style="width: 0%"></div>
+        </div>
+        <div class="torrent-stats" id="torrentStats">
+          <div class="stat-row">
+            <span class="stat-label">Progress:</span>
+            <span class="stat-value" id="statProgress">0%</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Download:</span>
+            <span class="stat-value" id="statDownload">0 B/s</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Upload:</span>
+            <span class="stat-value" id="statUpload">0 B/s</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Peers:</span>
+            <span class="stat-value" id="statPeers">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Size:</span>
+            <span class="stat-value" id="statSize">0 B</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-header">
+        <div class="panel-title">Peers</div>
+      </div>
+
+      <div class="peers-list" id="peersList">
+        <div class="empty-state">
+          <div>No peers connected</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification -->
+  <div class="notification" id="notification">
+    <span id="notificationText"></span>
+  </div>
+
+  <script>
+    // WebTorrent Player based on ThaUnknown/webtorrent-player
+    class WebTorrentPlayer {
+      constructor() {
+        this.client = new WebTorrent({
+          maxConns: 100,
+          dht: true,
+          lsd: true,
+          webSeeds: true,
+          utp: true
+        });
+        this.currentTorrent = null;
+        this.currentFile = null;
+        this.isPlaying = false;
+        this.updateInterval = null;
+        this.init();
+      }
+      init() {
+        console.log('🚀 Initializing WebTorrent Player...');
+        console.log('📦 WebTorrent version:', WebTorrent.VERSION);
+        this.setupEventListeners();
+        this.setupVideoEvents();
+        this.startUpdater();
+        // Load sample torrent for demo
+        this.loadSampleTorrent();
+        console.log('✅ WebTorrent Player initialized successfully');
+      }
+      setupEventListeners() {
+        // Form submission
+        document.getElementById('torrentForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          this.addTorrent();
+        });
+        // Control buttons
+        document.getElementById('playPauseBtn').addEventListener('click', () => {
+          this.togglePlayPause();
+        });
+        document.getElementById('stopBtn').addEventListener('click', () => {
+          this.stopPlayback();
+        });
+        document.getElementById('fullscreenBtn').addEventListener('click', () => {
+          this.toggleFullscreen();
+        });
+        document.getElementById('muteBtn').addEventListener('click', () => {
+          this.toggleMute();
+        });
+        // Volume control
+        const volumeSlider = document.getElementById('volumeSlider');
+        volumeSlider.addEventListener('input', (e) => {
+          this.setVolume(e.target.value);
+        });
+        // Progress bar seeking
+        const progressContainer = document.getElementById('progressContainer');
+        progressContainer.addEventListener('click', (e) => {
+          this.seekTo(e);
+        });
+        // Client events
+        this.client.on('error', (err) => {
+          console.error('❌ WebTorrent Client Error:', err);
+          this.showNotification('Client error: ' + err.message, 'error');
+        });
+        this.client.on('torrent', (torrent) => {
+          console.log('📦 Torrent added to client:', torrent.name);
+        });
+      }
+      setupVideoEvents() {
+        const video = document.getElementById('videoPlayer');
+        video.addEventListener('loadstart', () => {
+          console.log('🎬 Video loading started');
+          this.showOverlay('Loading video...');
+        });
+        video.addEventListener('canplay', () => {
+          console.log('▶️ Video can start playing');
+          this.hideOverlay();
+          this.updateControls();
+        });
+        video.addEventListener('play', () => {
+          this.isPlaying = true;
+          this.updateControls();
+        });
+        video.addEventListener('pause', () => {
+          this.isPlaying = false;
+          this.updateControls();
+        });
+        video.addEventListener('ended', () => {
+          this.isPlaying = false;
+          this.updateControls();
+          this.showNotification('Playback finished', 'success');
+        });
+        video.addEventListener('timeupdate', () => {
+          this.updateProgress();
+        });
+        video.addEventListener('progress', () => {
+          this.updateBuffered();
+        });
+        video.addEventListener('volumechange', () => {
+          this.updateVolumeDisplay();
+        });
+        video.addEventListener('error', (e) => {
+          console.error('❌ Video error:', e);
+          this.showOverlay('Video playback error');
+          this.showNotification('Playback error', 'error');
+        });
+      }
+      async addTorrent() {
+        const input = document.getElementById('magnetInput');
+        const magnetUri = input.value.trim();
+        const addBtn = document.getElementById('addBtn');
+        if (!magnetUri) {
+          this.showNotification('Please enter a magnet link', 'warning');
+          return;
+        }
+        // Validate magnet URI
+        if (!magnetUri.startsWith('magnet:') && !this.isValidHash(magnetUri)) {
+          this.showNotification('Invalid magnet link or hash', 'error');
+          return;
+        }
+        addBtn.disabled = true;
+        addBtn.textContent = 'Adding...';
+        try {
+          console.log('📥 Adding torrent:', magnetUri);
+          // Remove existing torrent if any
+          if (this.currentTorrent) {
+            this.currentTorrent.destroy();
+          }
+          const torrent = this.client.add(magnetUri, {
+            announce: this.getTrackerList(),
+            maxWebConns: 8
+          });
+          this.currentTorrent = torrent;
+          this.setupTorrentEvents(torrent);
+          input.value = '';
+          this.showNotification('Torrent added successfully!', 'success');
+        } catch (error) {
+          console.error('❌ Add torrent error:', error);
+          this.showNotification('Error adding torrent: ' + error.message, 'error');
+        } finally {
+          setTimeout(() => {
+            addBtn.disabled = false;
+            addBtn.textContent = 'Add Torrent';
+          }, 2000);
+        }
+      }
+      setupTorrentEvents(torrent) {
+        console.log('🔧 Setting up events for:', torrent.infoHash);
+        torrent.on('metadata', () => {
+          console.log('📋 Metadata received for:', torrent.name);
+          console.log('📁 Files:', torrent.files.length);
+          console.log('💾 Size:', this.formatBytes(torrent.length));
+          this.updateTorrentInfo(torrent);
+          this.updateFileList(torrent);
+          this.showNotification(`Torrent ready: ${torrent.name}`, 'success');
+        });
+        torrent.on('download', () => {
+          this.updateTorrentInfo(torrent);
+          this.updateFileList(torrent);
+        });
+        torrent.on('upload', () => {
+          this.updateTorrentInfo(torrent);
+        });
+        torrent.on('wire', (wire, addr) => {
+          console.log('🔗 New peer connected:', addr);
+          this.updatePeersList(torrent);
+        });
+        torrent.on('done', () => {
+          console.log('✅ Download completed:', torrent.name);
+          this.updateTorrentInfo(torrent);
+          this.showNotification(`Download completed: ${torrent.name}`, 'success');
+        });
+        torrent.on('error', (err) => {
+          console.error('❌ Torrent error:', err);
+          this.showNotification(`Torrent error: ${err.message}`, 'error');
+        });
+        torrent.on('warning', (err) => {
+          console.warn('⚠️ Torrent warning:', err);
+        });
+      }
+      updateTorrentInfo(torrent) {
+        if (!torrent) return;
+        const torrentName = document.getElementById('torrentName');
+        const torrentProgressBar = document.getElementById('torrentProgressBar');
+        const statProgress = document.getElementById('statProgress');
+        const statDownload = document.getElementById('statDownload');
+        const statUpload = document.getElementById('statUpload');
+        const statPeers = document.getElementById('statPeers');
+        const statSize = document.getElementById('statSize');
+        const progress = Math.round((torrent.progress || 0) * 100);
+        const downloadSpeed = this.formatBytes(torrent.downloadSpeed || 0);
+        const uploadSpeed = this.formatBytes(torrent.uploadSpeed || 0);
+        const totalSize = this.formatBytes(torrent.length || 0);
+        const numPeers = torrent.numPeers || 0;
+        if (torrentName) torrentName.textContent = torrent.name || 'Loading...';
+        if (torrentProgressBar) torrentProgressBar.style.width = `${progress}%`;
+        if (statProgress) statProgress.textContent = `${progress}%`;
+        if (statDownload) statDownload.textContent = `${downloadSpeed}/s`;
+        if (statUpload) statUpload.textContent = `${uploadSpeed}/s`;
+        if (statPeers) statPeers.textContent = numPeers;
+        if (statSize) statSize.textContent = totalSize;
+      }
+      updatePeersList(torrent) {
+        if (!torrent) return;
+        const peersList = document.getElementById('peersList');
+        if (!peersList) return;
+        if (torrent.wires.length === 0) {
+          peersList.innerHTML = '<div class="empty-state"><div>No peers connected</div></div>';
+          return;
+        }
+        let html = '';
+        torrent.wires.slice(0, 10).forEach(wire => {
+          html += `
+                        <div class="peer-item">
+                            <div class="peer-address">${wire.remoteAddress || 'Unknown'}</div>
+                            <div>↓ ${this.formatBytes(wire.downloadSpeed || 0)}/s ↑ ${this.formatBytes(wire.uploadSpeed || 0)}/s</div>
+                        </div>
+                    `;
+        });
+        peersList.innerHTML = html;
+      }
+      updateFileList(torrent) {
+        const fileList = document.getElementById('fileList');
+        if (!torrent || !torrent.files || torrent.files.length === 0) {
+          fileList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📁</div>
+                            <div>No files loaded</div>
+                        </div>
+                    `;
+          return;
+        }
+        let html = '';
+        torrent.files.forEach((file, index) => {
+          const isPlayable = this.isVideoFile(file.name) || this.isAudioFile(file.name);
+          const isPlaying = this.currentFile === file;
+          const progress = this.getFileProgress(file, torrent);
+          const icon = this.getFileIcon(file.name);
+          html += `
+                        <div class="file-item ${isPlaying ? 'playing' : ''} ${isPlayable ? 'playable' : ''}" 
+                             data-file-index="${index}">
+                            <div class="file-icon">${icon}</div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div class="file-name" title="${file.name}">${file.name}</div>
+                                <div class="file-progress">
+                                    <div class="file-progress-bar" style="width: ${progress}%"></div>
+                                </div>
+                            </div>
+                            <div class="file-size">${this.formatBytes(file.length)}</div>
+                        </div>
+                    `;
+        });
+        fileList.innerHTML = html;
+        // Add event listeners
+        fileList.querySelectorAll('.file-item').forEach((item) => {
+          const fileIndex = parseInt(item.dataset.fileIndex);
+          const file = torrent.files[fileIndex];
+          item.addEventListener('click', () => {
+            if (this.isVideoFile(file.name) || this.isAudioFile(file.name)) {
+              this.playFile(file);
+            }
+          });
+        });
+      }
+      updateControls() {
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        if (this.currentFile) {
+          playPauseBtn.disabled = false;
+          stopBtn.disabled = false;
+          playPauseBtn.textContent = this.isPlaying ? '⏸' : '▶';
+        } else {
+          playPauseBtn.disabled = true;
+          stopBtn.disabled = true;
+          playPauseBtn.textContent = '▶';
+        }
+      }
+      updateProgress() {
+        const video = document.getElementById('videoPlayer');
+        const progressFilled = document.getElementById('progressFilled');
+        const timeDisplay = document.getElementById('timeDisplay');
+        if (video.duration) {
+          const progress = (video.currentTime / video.duration) * 100;
+          if (progressFilled) progressFilled.style.width = `${progress}%`;
+          if (timeDisplay) {
+            const current = this.formatTime(video.currentTime);
+            const total = this.formatTime(video.duration);
+            timeDisplay.textContent = `${current} / ${total}`;
+          }
+        }
+      }
+      updateBuffered() {
+        const video = document.getElementById('videoPlayer');
+        const progressBuffered = document.getElementById('progressBuffered');
+        if (video.buffered.length > 0 && video.duration) {
+          const buffered = (video.buffered.end(0) / video.duration) * 100;
+          if (progressBuffered) progressBuffered.style.width = `${buffered}%`;
+        }
+      }
+      updateVolumeDisplay() {
+        const video = document.getElementById('videoPlayer');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeText = document.getElementById('volumeText');
+        const muteBtn = document.getElementById('muteBtn');
+        if (volumeSlider) volumeSlider.value = video.volume * 100;
+        if (volumeText) volumeText.textContent = Math.round(video.volume * 100) + '%';
+        if (muteBtn) muteBtn.textContent = video.muted || video.volume === 0 ? '🔇' : '🔊';
+      }
+      async playFile(file) {
+        console.log('🎬 Playing file:', file.name);
+        if (this.currentFile === file && this.isPlaying) {
+          this.togglePlayPause();
+          return;
+        }
+        this.currentFile = file;
+        this.showOverlay('Preparing playback...');
+        const video = document.getElementById('videoPlayer');
+        try {
+          // Clean up previous stream
+          if (video.src && video.src.startsWith('blob:')) {
+            URL.revokeObjectURL(video.src);
+          }
+          video.src = '';
+          video.load();
+          // Stream the file
+          await this.streamFile(file, video);
+          this.updateFileList(this.currentTorrent);
+          this.hideOverlay();
+        } catch (error) {
+          console.error('❌ Play file error:', error);
+          this.showOverlay('Playback error');
+          this.showNotification('Error playing file: ' + error.message, 'error');
+        }
+      }
+      togglePlayPause() {
+        const video = document.getElementById('videoPlayer');
+        if (video.paused) {
+          video.play();
+        } else {
+          video.pause();
+        }
+      }
+      stopPlayback() {
+        const video = document.getElementById('videoPlayer');
+        video.pause();
+        video.currentTime = 0;
+        this.currentFile = null;
+        this.showOverlay('Playback stopped');
+        this.updateFileList(this.currentTorrent);
+        this.updateControls();
+      }
+      toggleFullscreen() {
+        const video = document.getElementById('videoPlayer');
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        } else {
+          video.requestFullscreen();
+        }
+      }
+      toggleMute() {
+        const video = document.getElementById('videoPlayer');
+        video.muted = !video.muted;
+      }
+      setVolume(value) {
+        const video = document.getElementById('videoPlayer');
+        video.volume = value / 100;
+      }
+      seekTo(event) {
+        const video = document.getElementById('videoPlayer');
+        const progressContainer = event.currentTarget;
+        const rect = progressContainer.getBoundingClientRect();
+        const percent = (event.clientX - rect.left) / rect.width;
+        if (video.duration) {
+          video.currentTime = percent * video.duration;
+        }
+      }
+      async streamFile(file, video) {
+        return new Promise((resolve, reject) => {
+          console.log('🔄 Attempting to stream file:', file.name);
+          // Method 1: getBlobURL (most reliable)
+          file.getBlobURL((err, url) => {
+            if (!err && url) {
+              console.log('✅ getBlobURL successful');
+              video.src = url;
+              video.load();
+              resolve();
+              return;
+            }
+            console.log('⚠️ getBlobURL failed, trying renderTo...');
+            // Method 2: renderTo
+            try {
+              file.renderTo(video, (renderErr) => {
+                if (!renderErr) {
+                  console.log('✅ renderTo successful');
+                  resolve();
+                  return;
+                }
+                console.log('⚠️ renderTo failed, trying streamTo...');
+                // Method 3: streamTo
+                try {
+                  file.streamTo(video, (streamErr) => {
+                    if (!streamErr) {
+                      console.log('✅ streamTo successful');
+                      resolve();
+                      return;
+                    }
+                    console.log('❌ All streaming methods failed');
+                    reject(new Error('Could not play file'));
+                  });
+                } catch (streamError) {
+                  reject(streamError);
+                }
+              });
+            } catch (renderError) {
+              reject(renderError);
+            }
+          });
+        });
+      }
+      startUpdater() {
+        this.updateInterval = setInterval(() => {
+          if (this.currentTorrent) {
+            this.updateTorrentInfo(this.currentTorrent);
+            this.updatePeersList(this.currentTorrent);
+            this.updateFileList(this.currentTorrent);
+          }
+        }, 1000);
+      }
+      getFileIcon(filename) {
+        if (this.isVideoFile(filename)) return '🎬';
+        if (this.isAudioFile(filename)) return '🎵';
+        return '📄';
+      }
+      formatTime(seconds) {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = Math.floor(seconds % 60);
+        if (hours > 0) {
+          return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        return `${minutes}:${secs.toString().padStart(2, '0')}`;
+      }
+      showOverlay(text) {
+        const overlay = document.getElementById('videoOverlay');
+        const overlayText = document.getElementById('overlayText');
+        overlayText.textContent = text;
+        overlay.style.display = 'flex';
+      }
+      hideOverlay() {
+        const overlay = document.getElementById('videoOverlay');
+        overlay.style.display = 'none';
+      }
+      loadSampleTorrent() {
+        // Load Sintel sample torrent for demo
+        const sampleMagnet = 'magnet:?xt=urn:btih:009ff50e5e81bc5d82bb22fa0620d338d00f4bc6&dn=Highest.2.Lowest.2025.1080p.WEBRip.10Bit.DDP5.1.x265-NeoNoir.mkv&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.demonii.com%3A1337%2Fannounce&tr=http%3A%2F%2Fopen.tracker.cl%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Fexplodie.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.ololosh.space%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.dump.cl%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.bittor.pw%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker-udp.gbitt.info%3A80%2Fannounce&tr=udp%3A%2F%2Fretracker01-msk-virt.corbina.net%3A80%2Fannounce&tr=udp%3A%2F%2Fopen.free-tracker.ga%3A6969%2Fannounce&tr=udp%3A%2F%2Fns-1.x-fins.com%3A6969%2Fannounce&tr=http%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce&tr=udp%3A%2F%2Fp4p.arenabg.com%3A1337%2Fannounce&tr=udp%3A%2F%2Fretracker.hotplug.ru%3A2710%2Fannounce&tr=http%3A%2F%2Fbt.okmp3.ru%3A2710%2Fannounce&tr=udp%3A%2F%2Ftracker.tryhackx.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fttk2.nbaonlineservice.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fevan.im%3A6969%2Fannounce&tr=https%3A%2F%2Ftracker.jdx3.org%3A443%2Fannounce&tr=udp%3A%2F%2Fretracker.lanta.me%3A2710%2Fannounce&tr=http%3A%2F%2Fipv6.rer.lol%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.valete.tf%3A9999%2Fannounce&tr=http%3A%2F%2Ftracker.renfei.net%3A8080%2Fannounce&tr=https%3A%2F%2Ftracker.expli.top%3A443%2Fannounce&tr=https%3A%2F%2Ftr.nyacat.pw%3A443%2Fannounce&tr=udp%3A%2F%2Fextracker.dahrkael.net%3A6969%2Fannounce&tr=http%3A%2F%2Fipv4.rer.lol%3A2710%2Fannounce&tr=udp%3A%2F%2Ftracker.plx.im%3A6969%2Fannounce&tr=https%3A%2F%2Ftracker.alaskantf.com%3A443%2Fannounce&tr=udp%3A%2F%2Ftracker-de-2.cutie.dating%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.dler.com%3A6969%2Fannounce&tr=http%3A%2F%2Ftracker.mywaifu.best%3A6969%2Fannounce&tr=https%3A%2F%2Ftracker.yemekyedim.com%3A443%2Fannounce&tr=http%3A%2F%2Ftracker.beeimg.com%3A6969%2Fannounce&tr=http%3A%2F%2Flucke.fenesisu.moe%3A6969%2Fannounce&tr=udp%3A%2F%2Fd40969.acod.regrucolo.ru%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.fnix.net%3A6969%2Fannounce&tr=udp%3A%2F%2Fudp.tracker.projectk.org%3A23333%2Fannounce&tr=udp%3A%2F%2Ftracker.ducks.party%3A1984%2Fannounce&tr=udp%3A%2F%2F6ahddutb1ucc3cp.ru%3A6969%2Fannounce&tr=udp%3A%2F%2Fmartin-gebhardt.eu%3A25%2Fannounce&tr=udp%3A%2F%2Fbandito.byterunner.io%3A6969%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce&tr=udp%3A%2F%2Ftracker.srv00.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.tvunderground.org.ru%3A3218%2Fannounce&tr=https%3A%2F%2Ftracker.moeblog.cn%3A443%2Fannounce&tr=udp%3A%2F%2Ftracker.therarbg.to%3A6969%2Fannounce&tr=udp%3A%2F%2Fbt.bontal.net%3A6969%2Fannounce&tr=udp%3A%2F%2Fwww.torrent.eu.org%3A451%2Fannounce&tr=http%3A%2F%2Fopen.trackerlist.xyz%3A80%2Fannounce&tr=http%3A%2F%2Ftorrent.hificode.in%3A6969%2Fannounce&tr=https%3A%2F%2Ftracker.zhuqiy.top%3A443%2Fannounce&tr=http%3A%2F%2F0123456789nonexistent.com%3A80%2Fannounce&tr=udp%3A%2F%2F1c.premierzal.ru%3A6969%2Fannounce&tr=http%3A%2F%2Fshubt.net%3A2710%2Fannounce&tr=https%3A%2F%2Ftorrent.tracker.durukanbal.com%3A443%2Fannounce&tr=udp%3A%2F%2Ftracker.startwork.cv%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.cloudbase.store%3A1333%2Fannounce&tr=udp%3A%2F%2Ftracker.rescuecrew7.com%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.zupix.online%3A1333%2Fannounce&tr=http%3A%2F%2Ftracker.ipv6tracker.ru%3A80%2Fannounce&tr=https%3A%2F%2F2.tracker.eu.org%3A443%2Fannounce&tr=udp%3A%2F%2Fopentracker.io%3A6969%2Fannounce&tr=https%3A%2F%2F4.tracker.eu.org%3A443%2Fannounce&tr=https%3A%2F%2F3.tracker.eu.org%3A443%2Fannounce&tr=udp%3A%2F%2Ftracker.gigantino.net%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.skillindia.site%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.bitcoinindia.space%3A6969%2Fannounce&tr=udp%3A%2F%2Ftr4ck3r.duckdns.org%3A6969%2Fannounce&tr=https%3A%2F%2F1.tracker.eu.org%3A443%2Fannounce&tr=udp%3A%2F%2Ftracker.hifitechindia.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.torrust-demo.com%3A6969%2Fannounce&tr=http%3A%2F%2Ftracker.tritan.gg%3A8080%2Fannounce&tr=http%3A%2F%2Fbt1.archive.org%3A6969%2Fannounce&tr=http%3A%2F%2Fbt2.archive.org%3A6969%2Fannounce&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com';
+        document.getElementById('magnetInput').value = sampleMagnet;
+        this.addTorrent(); // ADICIONADO: Inicia o torrent de exemplo automaticamente
+      }
+      // Utility methods
+      getTrackerList() {
+        // A more comprehensive list of public trackers for better peer discovery.
+        return [
+          'udp://tracker.leechers-paradise.org:6969',
+          'udp://tracker.coppersurfer.tk:6969',
+          'udp://tracker.opentrackr.org:1337',
+          'udp://explodie.org:6969',
+          'udp://tracker.empire-js.us:1337',
+          'wss://tracker.btorrent.xyz',
+          'wss://tracker.openwebtorrent.com',
+          'wss://tracker.fastcast.nz',
+          'udp://tracker.opentrackr.org:1337/announce',
+          'udp://p4p.arenabg.com:1337/announce',
+          'udp://retracker.hotplug.ru:2710/announce',
+          'http://bt.okmp3.ru:2710/announce',
+          'udp://tracker.tryhackx.org:6969/announce',
+          'udp://ttk2.nbaonlineservice.com:6969/announce',
+          'udp://evan.im:6969/announce',
+          'https://tracker.jdx3.org:443/announce',
+          'udp://retracker.lanta.me:2710/announce',
+          'http://ipv6.rer.lol:6969/announce',
+          'udp://tracker.valete.tf:9999/announce',
+          'http://tracker.renfei.net:8080/announce',
+          'https://tracker.expli.top:443/announce',
+          'https://tr.nyacat.pw:443/announce',
+          'http://ipv4.rer.lol:2710/announce',
+          'udp://tracker.plx.im:6969/announce',
+          'https://tracker.alaskantf.com:443/announce',
+          'udp://tracker-de-2.cutie.dating:1337/announce',
+          'udp://open.stealth.si:80/announce',
+          'udp://tracker.dler.com:6969/announce',
+          'udp://retracker01-msk-virt.corbina.net:80/announce',
+          'udp://tracker.torrent.eu.org:451/announce',
+          'http://tracker.mywaifu.best:6969/announce',
+          'udp://tracker.fnix.net:6969/announce',
+          'https://tracker.yemekyedim.com:443/announce',
+          'http://tracker.beeimg.com:6969/announce',
+          'http://lucke.fenesisu.moe:6969/announce',
+          'udp://extracker.dahrkael.net:6969/announce',
+          'udp://d40969.acod.regrucolo.ru:6969/announce',
+          'udp://udp.tracker.projectk.org:23333/announce',
+          'udp://tracker.ducks.party:1984/announce',
+          'udp://6ahddutb1ucc3cp.ru:6969/announce',
+          'udp://martin-gebhardt.eu:25/announce',
+          'udp://bandito.byterunner.io:6969/announce',
+          'http://tracker.bt4g.com:2095/announce',
+          'udp://tracker.srv00.com:6969/announce',
+          'udp://open.demonii.com:1337/announce',
+          'udp://tracker.tvunderground.org.ru:3218/announce',
+          'https://tracker.moeblog.cn:443/announce',
+          'udp://tracker.therarbg.to:6969/announce',
+          'udp://bt.bontal.net:6969/announce',
+          'udp://www.torrent.eu.org:451/announce',
+          'http://open.trackerlist.xyz:80/announce',
+          'http://torrent.hificode.in:6969/announce',
+          'https://tracker.zhuqiy.top:443/announce',
+          'http://0123456789nonexistent.com:80/announce',
+          'udp://tracker.cloudbase.store:1333/announce',
+          'udp://1c.premierzal.ru:6969/announce',
+          'http://shubt.net:2710/announce',
+          'https://torrent.tracker.durukanbal.com:443/announce',
+          'udp://tracker.startwork.cv:1337/announce',
+          'udp://tracker.rescuecrew7.com:1337/announce',
+          'udp://tracker.zupix.online:1333/announce',
+          'udp://tracker.gigantino.net:6969/announce',
+          'http://tracker.ipv6tracker.ru:80/announce',
+          'udp://opentracker.io:6969/announce',
+          'https://2.tracker.eu.org:443/announce',
+          'https://4.tracker.eu.org:443/announce',
+          'https://3.tracker.eu.org:443/announce',
+          'udp://tracker.skillindia.site:6969/announce',
+          'udp://tracker.bitcoinindia.space:6969/announce',
+          'udp://tr4ck3r.duckdns.org:6969/announce',
+          'https://1.tracker.eu.org:443/announce',
+          'udp://tracker.hifitechindia.com:6969/announce',
+          'http://tracker.tritan.gg:8080/announce',
+          'http://bt1.archive.org:6969/announce',
+          'http://bt2.archive.org:6969/announce',
+          'wss://tracker.webtorrent.io',
+          'udp://tracker.openbittorrent.com:80/announce',
+          'udp://exodus.desync.com:6969/announce'
+        ];
+      }
+      extractInfoHash(magnetUri) {
+        if (magnetUri.startsWith('magnet:')) {
+          const match = magnetUri.match(/xt=urn:btih:([a-fA-F0-9]{40}|[a-fA-F0-9]{32})/);
+          return match ? match[1] : null;
+        }
+        return magnetUri; // Assume it's already a hash
+      }
+      isValidHash(hash) {
+        return /^[a-fA-F0-9]{40}$/.test(hash) || /^[a-fA-F0-9]{32}$/.test(hash);
+      }
+      isVideoFile(filename) {
+        const videoExtensions = ['.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv', '.webm', '.m4v', '.3gp', '.ogv'];
+        return videoExtensions.some(ext => filename.toLowerCase().endsWith(ext));
+      }
+      isAudioFile(filename) {
+        const audioExtensions = ['.mp3', '.flac', '.wav', '.ogg', '.m4a', '.aac', '.wma'];
+        return audioExtensions.some(ext => filename.toLowerCase().endsWith(ext));
+      }
+      getFileProgress(file, torrent) {
+        if (!file || !torrent) return 0;
+        // Use WebTorrent's built-in file progress if available
+        if (file.progress !== undefined) {
+          return Math.round(file.progress * 100);
+        }
+        // Calculate based on downloaded bytes vs total bytes
+        if (file.downloaded !== undefined && file.length > 0) {
+          return Math.round((file.downloaded / file.length) * 100);
+        }
+        // Final fallback: use torrent overall progress
+        return Math.round((torrent.progress || 0) * 100);
+      }
+      formatBytes(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+      showNotification(message, type = 'info') {
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notificationText');
+        notification.className = `notification ${type}`;
+        notificationText.textContent = message;
+        notification.classList.add('show');
+        setTimeout(() => {
+          notification.classList.remove('show');
+        }, 4000);
+      }
+      destroy() {
+        console.log('🛑 Destroying WebTorrent Player...');
+        if (this.updateInterval) {
+          clearInterval(this.updateInterval);
+        }
+        if (this.currentTorrent) {
+          this.currentTorrent.destroy();
+        }
+        this.client.destroy();
+        console.log('✅ WebTorrent Player destroyed');
+      }
+    }
+    // Initialize the player
+    const player = new WebTorrentPlayer();
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      player.destroy();
+    });
+    // Handle visibility change
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        // Refresh when page becomes visible
+        player.updateStats();
+      }
+    });
+  </script>
+  <script>
+    (function() {
+      function c() {
+        var b = a.contentDocument || a.contentWindow.document;
+        if (b) {
+          var d = b.createElement('script');
+          d.innerHTML = "window.__CF$cv$params={r:'97bef12587d9e10b',t:'MTc1NzMzOTcxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+          b.getElementsByTagName('head')[0].appendChild(d)
+        }
+      }
+      if (document.body) {
+        var a = document.createElement('iframe');
+        a.height = 1;
+        a.width = 1;
+        a.style.position = 'absolute';
+        a.style.top = 0;
+        a.style.left = 0;
+        a.style.border = 'none';
+        a.style.visibility = 'hidden';
+        document.body.appendChild(a);
+        if ('loading' !== document.readyState) c();
+        else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c);
+        else {
+          var e = document.onreadystatechange || function() {};
+          document.onreadystatechange = function(b) {
+            e(b);
+            'loading' !== document.readyState && (document.onreadystatechange = e, c())
+          }
+        }
+      }
+    })();
+  </script>
+</body>
+
+</html>
